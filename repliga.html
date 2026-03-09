@@ -1,0 +1,2381 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RePLiga — Vremeplov</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #0057FF;
+    --cyan: #00C8FF;
+    --dark: #080C14;
+    --mid: #0F1826;
+    --card: #141E2E;
+    --border: #1E2E44;
+    --text: #C8D8EE;
+    --muted: #4A6080;
+    --white: #F0F6FF;
+    --gold: #FFB800;
+    --green: #00E5A0;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    background: #030d18;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    min-height: 100vh;
+    background-image: 
+      radial-gradient(ellipse 80% 50% at 50% 0%, rgba(0,60,140,0.35) 0%, transparent 60%),
+      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(0,40,90,0.4) 39px, rgba(0,40,90,0.4) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(0,40,90,0.4) 39px, rgba(0,40,90,0.4) 40px);
+    background-attachment: fixed;
+  }
+
+  header {
+    background: rgba(2,10,25,0.92);
+    backdrop-filter: blur(24px);
+    border-bottom: 1px solid rgba(0,100,200,0.25);
+    padding: 0 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    height: 72px;
+    box-shadow: 0 2px 40px rgba(0,60,180,0.15);
+  }
+  .logo-img {
+    width: 52px;
+    height: 52px;
+    border-radius: 10px;
+    object-fit: cover;
+    flex-shrink: 0;
+    filter: drop-shadow(0 0 8px rgba(0,180,255,0.4));
+  }
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px;
+    letter-spacing: 3px;
+    background: linear-gradient(135deg, #7FDDFF, #3399FF);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    white-space: nowrap;
+  }
+  .logo span { color: var(--muted); font-size: 11px; display: block; letter-spacing: 2px; font-family: 'DM Mono', monospace; margin-top: -4px; -webkit-text-fill-color: rgba(100,160,220,0.7); }
+  .header-stats {
+    margin-left: auto;
+    display: flex;
+    gap: 24px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .header-stats strong { color: var(--cyan); font-size: 16px; display: block; }
+
+  main { max-width: 1400px; margin: 0 auto; padding: 32px 24px; }
+
+  .filters {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    align-items: end;
+  }
+  .filter-group label {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    margin-bottom: 6px;
+  }
+  .filter-group input, .filter-group select {
+    width: 100%;
+    background: var(--mid);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    padding: 8px 12px;
+    outline: none;
+    transition: border-color .2s;
+    appearance: none;
+  }
+  .filter-group input:focus, .filter-group select:focus { border-color: var(--blue); }
+  .filter-group select option { background: var(--mid); }
+
+  .btn-reset {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 6px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: all .2s;
+    align-self: end;
+  }
+  .btn-reset:hover { border-color: var(--cyan); color: var(--cyan); }
+
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 20px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px;
+    width: fit-content;
+  }
+  .tab {
+    padding: 8px 20px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: .5px;
+    transition: all .2s;
+    color: var(--muted);
+    border: none;
+    background: none;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .tab.active { background: var(--blue); color: #fff; }
+
+  .results-info {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .results-info strong { color: var(--cyan); }
+
+  /* TABLE */
+  .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; background: var(--card); }
+  thead { background: var(--mid); }
+  th {
+    padding: 10px 14px;
+    text-align: left;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    transition: color .2s;
+  }
+  th:hover { color: var(--cyan); }
+  th.sorted { color: var(--cyan); }
+  tr:not(thead tr):hover { background: rgba(0,87,255,0.05); }
+  td {
+    padding: 9px 14px;
+    border-bottom: 1px solid rgba(30,46,68,0.5);
+    white-space: nowrap;
+  }
+  tr:last-child td { border-bottom: none; }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .5px;
+  }
+  .badge-sl { background: rgba(0,200,255,0.15); color: var(--cyan); }
+  .badge-p  { background: rgba(255,184,0,0.15);  color: var(--gold); }
+  .badge-l  { background: rgba(0,229,160,0.15);  color: var(--green); }
+  .badge-d  { background: rgba(255,80,100,0.12); color: #FF8095; }
+  .badge-m  { background: rgba(160,80,255,0.15); color: #C080FF; }
+  .badge-a3 { background: rgba(255,100,50,0.15); color: #FF9070; }
+
+  .ktg-badge {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    background: rgba(0,87,255,0.15);
+    color: #80A8FF;
+    border: 1px solid rgba(0,87,255,0.2);
+  }
+
+  .time { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--white); }
+  .name { font-weight: 500; color: var(--white); }
+  .year-badge { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+
+  /* ATHLETE VIEW */
+  .athlete-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .athlete-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; }
+  .athlete-name { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; color: var(--white); }
+  .athlete-results { display: flex; flex-wrap: wrap; gap: 8px; }
+  .result-chip {
+    background: var(--mid);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .empty { text-align: center; padding: 60px; color: var(--muted); font-family: 'DM Mono', monospace; }
+  .empty span { font-size: 48px; display: block; margin-bottom: 12px; opacity: .3; }
+
+  /* ADD FORM */
+  .add-section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  .add-section h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 2px;
+    color: var(--white);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .add-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .add-grid input, .add-grid select {
+    background: var(--mid);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    padding: 8px 12px;
+    outline: none;
+    width: 100%;
+    transition: border-color .2s;
+    appearance: none;
+  }
+  .add-grid input:focus, .add-grid select:focus { border-color: var(--blue); }
+  .add-grid select option { background: var(--mid); }
+  .add-grid label { display: block; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); font-family: 'DM Mono', monospace; margin-bottom: 5px; }
+  .btn-add {
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 9px 24px;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: all .2s;
+    margin-top: 16px;
+  }
+  .btn-add:hover { background: var(--cyan); color: var(--dark); }
+
+  .toggle-add {
+    background: transparent;
+    border: 1px dashed var(--border);
+    color: var(--muted);
+    border-radius: 8px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: all .2s;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .toggle-add:hover { border-color: var(--blue); color: var(--blue); }
+
+  .msg { padding: 10px 16px; border-radius: 6px; font-family: 'DM Mono', monospace; font-size: 12px; margin-top: 12px; display: none; }
+  .msg.ok { background: rgba(0,229,160,0.1); color: var(--green); border: 1px solid rgba(0,229,160,0.3); }
+  .msg.err { background: rgba(255,80,80,0.1); color: #FF8080; border: 1px solid rgba(255,80,80,0.3); }
+
+  @media (max-width: 600px) {
+    header { padding: 0 16px; }
+    main { padding: 20px 12px; }
+    .header-stats { display: none; }
+  }
+
+  /* HERO */
+  .hero {
+    position: relative;
+    width: 100%;
+    height: clamp(320px, 45vw, 560px);
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 60px;
+  }
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    filter: brightness(0.92) saturate(1.15) contrast(1.02);
+  }
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(2,10,25,0.0) 0%,
+      rgba(2,10,25,0.0) 55%,
+      rgba(2,10,25,0.85) 100%
+    );
+  }
+  /* water light caustics */
+  .hero-shimmer {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80px 40px at 20% 60%, rgba(255,255,255,0.025) 0%, transparent 70%),
+      radial-gradient(ellipse 120px 30px at 65% 40%, rgba(255,255,255,0.02) 0%, transparent 70%),
+      radial-gradient(ellipse 60px 50px at 85% 70%, rgba(255,255,255,0.025) 0%, transparent 70%);
+    animation: caustics 6s ease-in-out infinite alternate;
+  }
+  @keyframes caustics {
+    0%   { opacity: 0.6; transform: scaleX(1)   scaleY(1); }
+    50%  { opacity: 1;   transform: scaleX(1.02) scaleY(0.98); }
+    100% { opacity: 0.7; transform: scaleX(0.99) scaleY(1.01); }
+  }
+  .hero-content {
+    position: relative;
+    text-align: center;
+    z-index: 2;
+    padding: 0 20px;
+  }
+  .hero-title { display: none; }
+  .hero-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: clamp(10px, 1.4vw, 14px);
+    letter-spacing: clamp(4px, 1vw, 10px);
+    text-transform: uppercase;
+    color: rgba(180,225,255,0.75);
+    text-shadow:
+      0 0 12px rgba(0,150,255,0.6),
+      0 0 30px rgba(0,100,200,0.3);
+  }
+  /* wave divider */
+  .hero-wave {
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background: #030d18;
+    clip-path: ellipse(58% 100% at 50% 100%);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <img class="logo-img" src="data:image/png;base64,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" alt="RePLiga logo">
+  <div class="logo">RePLiga <span>VREMEPLOV DATABASE</span></div>
+  <div class="header-stats">
+    <div><strong id="hdr-athletes">—</strong>natjecatelja</div>
+    <div><strong id="hdr-results">—</strong>rezultata</div>
+    <div><strong id="hdr-seasons">—</strong>sezona</div>
+  </div>
+</header>
+
+<div class="hero">
+  <img class="hero-bg" src="data:image/png;base64,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" alt="RePLiga pool">
+  <div class="hero-overlay"></div>
+  <div class="hero-shimmer"></div>
+  <div class="hero-content">
+    <div class="hero-title">RePLiga</div>
+    <div class="hero-sub">Rekreativna Plivačka Liga · Vremeplov</div>
+  </div>
+  <div class="hero-wave"></div>
+</div>
+
+<main>
+  <!-- FILTERS -->
+  <div class="filters">
+    <div class="filter-group" style="grid-column: span 2">
+      <label>🔍 Pretraži ime</label>
+      <input type="text" id="f-name" placeholder="npr. Borko Prvan…">
+    </div>
+    <div class="filter-group">
+      <label>Sezona</label>
+      <select id="f-season">
+        <option value="">Sve sezone</option>
+        <option value="2015">2015</option>
+        <option value="2018">2018</option>
+        <option value="2024">2024</option>
+        <option value="2025">2025</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Spol</label>
+      <select id="f-gender">
+        <option value="">Oba spola</option>
+        <option value="Ž">Žene (Ž)</option>
+        <option value="M">Muškarci (M)</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Kategorija</label>
+      <select id="f-ktg">
+        <option value="">Sve kategorije</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Disciplina</label>
+      <select id="f-tech">
+        <option value="">Sve discipline</option>
+        <option value="sl">sl – 50m slobodno</option>
+        <option value="p">p – 50m prsno</option>
+        <option value="l">l – 50m leđno</option>
+        <option value="d">d – 50m dupin</option>
+        <option value="SL">SL – 200m slobodno</option>
+        <option value="P">P – 200m prsno</option>
+        <option value="L">L – 200m leđno</option>
+        <option value="D">D – 200m dupin</option>
+        <option value="M">M – 200m mješovito</option>
+        <option value="a3">a3 – Aqua3atlon</option>
+        <option value="mAq3">mAq3 – Mini Aqua3atlon</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Min. kola</label>
+      <select id="f-min">
+        <option value="0">Sva kola</option>
+        <option value="3">3+ kola</option>
+        <option value="5">5+ kola</option>
+        <option value="7">7+ kola</option>
+      </select>
+    </div>
+    <div>
+      <button class="btn-reset" onclick="resetFilters()">✕ Reset</button>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('results',this)">Svi rezultati</button>
+    <button class="tab" onclick="switchTab('athletes',this)">Po natjecatelju</button>
+    <button class="tab" onclick="switchTab('add',this)">+ Dodaj rezultat</button>
+  </div>
+
+  <!-- RESULTS TAB -->
+  <div id="tab-results">
+    <div class="results-info">Prikazano <strong id="count">0</strong> rezultata &nbsp;·&nbsp; Klikni stupac za sortiranje</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th onclick="sortBy('name')">Ime i prezime</th>
+            <th onclick="sortBy('ktg')">Ktg.</th>
+            <th onclick="sortBy('season')">Sezona</th>
+            <th onclick="sortBy('kolo')">Kolo</th>
+            <th onclick="sortBy('tech')">Disciplina</th>
+            <th onclick="sortBy('dist')">Dist.</th>
+            <th onclick="sortBy('time_s')">Vrijeme</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ATHLETES TAB -->
+  <div id="tab-athletes" style="display:none">
+    <div id="athlete-list"></div>
+  </div>
+
+  <!-- ADD TAB -->
+  <div id="tab-add" style="display:none">
+    <div class="add-section">
+      <h3>📋 Dodaj novi rezultat</h3>
+      <div class="add-grid">
+        <div>
+          <label>Ime i prezime *</label>
+          <input type="text" id="a-name" placeholder="npr. Ivan Horvat">
+        </div>
+        <div>
+          <label>Kategorija *</label>
+          <input type="text" id="a-ktg" placeholder="npr. M05 ili Ž03">
+        </div>
+        <div>
+          <label>Sezona *</label>
+          <input type="text" id="a-season" placeholder="npr. 2023">
+        </div>
+        <div>
+          <label>Kolo *</label>
+          <input type="number" id="a-kolo" placeholder="1" min="1" max="20">
+        </div>
+        <div>
+          <label>Disciplina */label>
+          <select id="a-tech">
+            <option value="">— odaberi —</option>
+            <option value="sl">sl – 50m slobodno</option>
+            <option value="p">p – 50m prsno</option>
+            <option value="l">l – 50m leđno</option>
+            <option value="d">d – 50m dupin</option>
+            <option value="SL">SL – 200m slobodno</option>
+            <option value="P">P – 200m prsno</option>
+            <option value="L">L – 200m leđno</option>
+            <option value="D">D – 200m dupin</option>
+            <option value="M">M – 200m mješovito</option>
+            <option value="a3">a3 – Aqua3atlon</option>
+          </select>
+        </div>
+        <div>
+          <label>Vrijeme * (MM:SS,mm)</label>
+          <input type="text" id="a-time" placeholder="npr. 00:32,45 ili 02:45,10">
+        </div>
+      </div>
+      <button class="btn-add" onclick="addResult()">Dodaj rezultat</button>
+      <div class="msg ok" id="msg-ok">✓ Rezultat uspješno dodan!</div>
+      <div class="msg err" id="msg-err">⚠ Molimo ispunite sva obavezna polja.</div>
+    </div>
+    <div class="add-section" style="border-color: rgba(255,184,0,0.2)">
+      <h3 style="color:var(--gold)">💡 Kako nadopuniti bazu?</h3>
+      <p style="color:var(--muted); line-height:1.7; font-size:13px">
+        Korištenjem forme iznad možeš dodati individualne rezultate koji se pamte u ovoj sesiji.<br><br>
+        Za trajno dodavanje novih sezona, otvori HTML datoteku u tekst editoru i u JavaScript dijelu pronađi array <code style="background:var(--mid);padding:2px 6px;border-radius:3px;color:var(--cyan)">const DB</code> — dodaj nove objekte prema istom obrascu.<br><br>
+        Datoteka se može hostati potpuno besplatno na: <strong style="color:var(--white)">GitHub Pages</strong>, <strong style="color:var(--white)">Netlify Drop</strong> ili <strong style="color:var(--white)">Cloudflare Pages</strong> — samo upload jedne HTML datoteke.
+      </p>
+    </div>
+  </div>
+</main>
+
+<script>
+// ─────────────────────────────────────────────
+// DATABASE — svi rezultati iz 2015 i 2018
+// Format: { name, ktg, gender, season, kolo, tech, dist, time, time_s }
+// time_s = sekunde za sortiranje
+// ─────────────────────────────────────────────
+function parseTime(t) {
+  if (!t) return 99999;
+  // MM:SS,ss or MM:SS.ss
+  const m = t.match(/(\d+)[:\.](\d+)[,\.](\d+)/);
+  if (m) return parseInt(m[1])*60 + parseInt(m[2]) + parseInt(m[3])/100;
+  return 99999;
+}
+function techDist(t) {
+  if (['SL','P','L','D','M'].includes(t)) return '200m';
+  if (['sl','p','l','d'].includes(t)) return '50m';
+  if (t === 'a3') return 'Aqua3';
+  if (t === 'mAq3') return 'mAq3';
+  return '—';
+}
+
+const DB_RAW = [
+  // ── 2015 – ŽENE ──────────────────────────────────────────
+  // Dorja Anić Ž02 – 9 nastupa
+  {n:"Dorja Anić",k:"Ž02",s:2015,kolo:1,t:"sl",v:"00:32,58"},
+  {n:"Dorja Anić",k:"Ž02",s:2015,kolo:2,t:"sl",v:"00:32,17"},
+  {n:"Dorja Anić",k:"Ž02",s:2015,kolo:3,t:"d",v:"00:37,24"},
+  {n:"Dorja Anić",k:"Ž02",s:2015,kolo:4,t:"SL",v:"02:37,05"},
+  {n:"Dorja Anić",k:"Ž02",s:2015,kolo:5,t:"sl",v:"00:31,81"},
+  {n:"Dorja Anić",k:"Ž02",s:2015,kolo:6,t:"l",v:"00:37,40"},
+  {n:"Dorja Anić",k:"Ž02",s:2015,kolo:7,t:"SL",v:"02:37,31"},
+  {n:"Dorja Anić",k:"Ž02",s:2015,kolo:8,t:"SL",v:"02:37,99"},
+  {n:"Dorja Anić",k:"Ž02",s:2015,kolo:9,t:"SL",v:"02:40,55"},
+  // Goranka Pavlić Ž08 – 9
+  {n:"Goranka Pavlić",k:"Ž08",s:2015,kolo:1,t:"sl",v:"00:50,24"},
+  {n:"Goranka Pavlić",k:"Ž08",s:2015,kolo:2,t:"sl",v:"00:52,02"},
+  {n:"Goranka Pavlić",k:"Ž08",s:2015,kolo:3,t:"sl",v:"00:50,13"},
+  {n:"Goranka Pavlić",k:"Ž08",s:2015,kolo:4,t:"SL",v:"00:49,56"},
+  {n:"Goranka Pavlić",k:"Ž08",s:2015,kolo:5,t:"sl",v:"00:50,16"},
+  {n:"Goranka Pavlić",k:"Ž08",s:2015,kolo:6,t:"sl",v:"00:50,30"},
+  {n:"Goranka Pavlić",k:"Ž08",s:2015,kolo:7,t:"sl",v:"00:51,91"},
+  {n:"Goranka Pavlić",k:"Ž08",s:2015,kolo:8,t:"sl",v:"00:52,46"},
+  {n:"Goranka Pavlić",k:"Ž08",s:2015,kolo:9,t:"sl",v:"00:49,96"},
+  // Zorana Bujas Petković Ž10 – 9
+  {n:"Zorana Bujas Petković",k:"Ž10",s:2015,kolo:1,t:"p",v:"01:01,86"},
+  {n:"Zorana Bujas Petković",k:"Ž10",s:2015,kolo:2,t:"p",v:"01:05,40"},
+  {n:"Zorana Bujas Petković",k:"Ž10",s:2015,kolo:3,t:"p",v:"01:04,87"},
+  {n:"Zorana Bujas Petković",k:"Ž10",s:2015,kolo:4,t:"p",v:"01:04,09"},
+  {n:"Zorana Bujas Petković",k:"Ž10",s:2015,kolo:5,t:"p",v:"01:05,95"},
+  {n:"Zorana Bujas Petković",k:"Ž10",s:2015,kolo:6,t:"p",v:"01:08,43"},
+  {n:"Zorana Bujas Petković",k:"Ž10",s:2015,kolo:7,t:"p",v:"01:05,19"},
+  {n:"Zorana Bujas Petković",k:"Ž10",s:2015,kolo:8,t:"p",v:"01:08,10"},
+  {n:"Zorana Bujas Petković",k:"Ž10",s:2015,kolo:9,t:"p",v:"01:06,88"},
+  // Vesna Jakšić Ž09 – 8
+  {n:"Vesna Jakšić",k:"Ž09",s:2015,kolo:1,t:"sl",v:"00:40,18"},
+  {n:"Vesna Jakšić",k:"Ž09",s:2015,kolo:2,t:"sl",v:"00:39,78"},
+  {n:"Vesna Jakšić",k:"Ž09",s:2015,kolo:3,t:"sl",v:"00:40,43"},
+  {n:"Vesna Jakšić",k:"Ž09",s:2015,kolo:4,t:"sl",v:"00:39,46"},
+  {n:"Vesna Jakšić",k:"Ž09",s:2015,kolo:5,t:"sl",v:"00:39,71"},
+  {n:"Vesna Jakšić",k:"Ž09",s:2015,kolo:6,t:"SL",v:"03:41,22"},
+  {n:"Vesna Jakšić",k:"Ž09",s:2015,kolo:7,t:"sl",v:"00:40,37"},
+  {n:"Vesna Jakšić",k:"Ž09",s:2015,kolo:8,t:"sl",v:"00:40,58"},
+  // Nada Nagy Ž08 – 7
+  {n:"Nada Nagy",k:"Ž08",s:2015,kolo:1,t:"p",v:"01:08,14"},
+  {n:"Nada Nagy",k:"Ž08",s:2015,kolo:2,t:"p",v:"01:10,27"},
+  {n:"Nada Nagy",k:"Ž08",s:2015,kolo:3,t:"p",v:"01:10,83"},
+  {n:"Nada Nagy",k:"Ž08",s:2015,kolo:4,t:"p",v:"01:11,69"},
+  {n:"Nada Nagy",k:"Ž08",s:2015,kolo:5,t:"p",v:"01:13,27"},
+  {n:"Nada Nagy",k:"Ž08",s:2015,kolo:6,t:"p",v:"01:14,56"},
+  {n:"Nada Nagy",k:"Ž08",s:2015,kolo:7,t:"p",v:"01:13,43"},
+  // Sanja Žonja Ž04 – 5
+  {n:"Sanja Žonja",k:"Ž04",s:2015,kolo:1,t:"sl",v:"00:39,84"},
+  {n:"Sanja Žonja",k:"Ž04",s:2015,kolo:2,t:"sl",v:"00:39,11"},
+  {n:"Sanja Žonja",k:"Ž04",s:2015,kolo:3,t:"sl",v:"00:37,99"},
+  {n:"Sanja Žonja",k:"Ž04",s:2015,kolo:4,t:"sl",v:"00:37,78"},
+  {n:"Sanja Žonja",k:"Ž04",s:2015,kolo:5,t:"sl",v:"00:36,84"},
+  // Ana Knežević Ž04 – 5
+  {n:"Ana Knežević",k:"Ž04",s:2015,kolo:1,t:"sl",v:"01:05,73"},
+  {n:"Ana Knežević",k:"Ž04",s:2015,kolo:2,t:"sl",v:"01:02,24"},
+  {n:"Ana Knežević",k:"Ž04",s:2015,kolo:3,t:"sl",v:"00:59,46"},
+  {n:"Ana Knežević",k:"Ž04",s:2015,kolo:4,t:"sl",v:"01:01,19"},
+  {n:"Ana Knežević",k:"Ž04",s:2015,kolo:5,t:"sl",v:"01:00,19"},
+  // Višnja Petković Ž10 – 4
+  {n:"Višnja Petković",k:"Ž10",s:2015,kolo:1,t:"p",v:"00:47,68"},
+  {n:"Višnja Petković",k:"Ž10",s:2015,kolo:2,t:"d",v:"00:45,68"},
+  {n:"Višnja Petković",k:"Ž10",s:2015,kolo:3,t:"l",v:"00:43,81"},
+  {n:"Višnja Petković",k:"Ž10",s:2015,kolo:4,t:"sl",v:"00:37,23"},
+  // Dubravka Tješinski Ž08 – 2
+  {n:"Dubravka Tješinski",k:"Ž08",s:2015,kolo:1,t:"p",v:"01:50,72"},
+  {n:"Dubravka Tješinski",k:"Ž08",s:2015,kolo:2,t:"p",v:"01:55,14"},
+  // Katica Ivaci Ž10 – 2
+  {n:"Katica Ivaci",k:"Ž10",s:2015,kolo:1,t:"p",v:"01:47,07"},
+  {n:"Katica Ivaci",k:"Ž10",s:2015,kolo:2,t:"sl",v:"01:37,00"},
+  // Lena Santrić Ž03 – 2
+  {n:"Lena Santrić",k:"Ž03",s:2015,kolo:1,t:"p",v:"01:05,96"},
+  {n:"Lena Santrić",k:"Ž03",s:2015,kolo:2,t:"p",v:"01:04,70"},
+  // Maja Vukmirović Ž04 – 2
+  {n:"Maja Vukmirović",k:"Ž04",s:2015,kolo:1,t:"l",v:"01:59,90"},
+  {n:"Maja Vukmirović",k:"Ž04",s:2015,kolo:2,t:"p",v:"01:20,84"},
+  // Vlatka Maligec Filipčić Ž07 – 2
+  {n:"Vlatka Maligec Filipčić",k:"Ž07",s:2015,kolo:1,t:"sl",v:"00:58,81"},
+  {n:"Vlatka Maligec Filipčić",k:"Ž07",s:2015,kolo:2,t:"sl",v:"01:01,40"},
+  // Melita Bogatec Milivojević Ž11 – 2
+  {n:"Melita Bogatec Milivojević",k:"Ž11",s:2015,kolo:1,t:"p",v:"01:45,41"},
+  {n:"Melita Bogatec Milivojević",k:"Ž11",s:2015,kolo:2,t:"p",v:"01:38,34"},
+  // Kristina Nagy Ž02 – 2
+  {n:"Kristina Nagy",k:"Ž02",s:2015,kolo:1,t:"p",v:"00:56,43"},
+  {n:"Kristina Nagy",k:"Ž02",s:2015,kolo:2,t:"p",v:"00:55,56"},
+  // Single nastup – žene 2015
+  {n:"Ivana Pojatina",k:"Ž05",s:2015,kolo:1,t:"sl",v:"01:03,34"},
+  {n:"Jelena Bielen",k:"Ž03",s:2015,kolo:1,t:"sl",v:"00:32,68"},
+  {n:"Julijana Šaško",k:"Ž11",s:2015,kolo:1,t:"sl",v:"01:02,83"},
+  {n:"Katarina Bačić",k:"Ž02",s:2015,kolo:1,t:"l",v:"00:48,11"},
+  {n:"Leona Kovačević",k:"Ž01",s:2015,kolo:1,t:"sl",v:"00:42,47"},
+  {n:"Lucija Čurić",k:"Ž05",s:2015,kolo:1,t:"sl",v:"00:43,00"},
+  {n:"Ljubica Blagus",k:"Ž11",s:2015,kolo:1,t:"p",v:"01:36,84"},
+  {n:"Marinka Kraljević",k:"Ž08",s:2015,kolo:1,t:"p",v:"01:45,78"},
+  {n:"Nataša Vuletić",k:"Ž06",s:2015,kolo:1,t:"p",v:"01:59,24"},
+  {n:"Sunčica Blagus",k:"Ž04",s:2015,kolo:1,t:"p",v:"01:02,37"},
+  {n:"Vendi Kovačević",k:"Ž03",s:2015,kolo:1,t:"sl",v:"00:41,75"},
+  {n:"Vesna Iris",k:"Ž08",s:2015,kolo:1,t:"l",v:"01:09,58"},
+  // ── 2015 – MUŠKARCI ──────────────────────────────────────
+  // Bruno Škacan M09 – 9
+  {n:"Bruno Škacan",k:"M09",s:2015,kolo:1,t:"sl",v:"00:35,97"},
+  {n:"Bruno Škacan",k:"M09",s:2015,kolo:2,t:"sl",v:"00:38,46"},
+  {n:"Bruno Škacan",k:"M09",s:2015,kolo:3,t:"sl",v:"00:36,40"},
+  {n:"Bruno Škacan",k:"M09",s:2015,kolo:4,t:"sl",v:"00:35,08"},
+  {n:"Bruno Škacan",k:"M09",s:2015,kolo:5,t:"sl",v:"00:37,16"},
+  {n:"Bruno Škacan",k:"M09",s:2015,kolo:6,t:"p",v:"00:45,10"},
+  {n:"Bruno Škacan",k:"M09",s:2015,kolo:7,t:"sl",v:"00:35,30"},
+  {n:"Bruno Škacan",k:"M09",s:2015,kolo:8,t:"sl",v:"00:36,87"},
+  {n:"Bruno Škacan",k:"M09",s:2015,kolo:9,t:"p",v:"00:46,13"},
+  // Danijel Raković M02 – 9
+  {n:"Danijel Raković",k:"M02",s:2015,kolo:1,t:"sl",v:"00:28,99"},
+  {n:"Danijel Raković",k:"M02",s:2015,kolo:2,t:"sl",v:"00:29,08"},
+  {n:"Danijel Raković",k:"M02",s:2015,kolo:3,t:"d",v:"00:32,38"},
+  {n:"Danijel Raković",k:"M02",s:2015,kolo:4,t:"sl",v:"00:29,37"},
+  {n:"Danijel Raković",k:"M02",s:2015,kolo:5,t:"sl",v:"00:29,03"},
+  {n:"Danijel Raković",k:"M02",s:2015,kolo:6,t:"sl",v:"00:28,71"},
+  {n:"Danijel Raković",k:"M02",s:2015,kolo:7,t:"SL",v:"02:33,28"},
+  {n:"Danijel Raković",k:"M02",s:2015,kolo:8,t:"sl",v:"00:28,74"},
+  {n:"Danijel Raković",k:"M02",s:2015,kolo:9,t:"SL",v:"02:39,45"},
+  // Dinko Srkoč M06 – 9
+  {n:"Dinko Srkoč",k:"M06",s:2015,kolo:1,t:"sl",v:"00:38,62"},
+  {n:"Dinko Srkoč",k:"M06",s:2015,kolo:2,t:"sl",v:"00:38,99"},
+  {n:"Dinko Srkoč",k:"M06",s:2015,kolo:3,t:"sl",v:"00:38,79"},
+  {n:"Dinko Srkoč",k:"M06",s:2015,kolo:4,t:"sl",v:"00:37,78"},
+  {n:"Dinko Srkoč",k:"M06",s:2015,kolo:5,t:"sl",v:"00:38,00"},
+  {n:"Dinko Srkoč",k:"M06",s:2015,kolo:6,t:"sl",v:"00:39,59"},
+  {n:"Dinko Srkoč",k:"M06",s:2015,kolo:7,t:"SL",v:"03:28,08"},
+  {n:"Dinko Srkoč",k:"M06",s:2015,kolo:8,t:"SL",v:"03:22,50"},
+  {n:"Dinko Srkoč",k:"M06",s:2015,kolo:9,t:"SL",v:"03:16,78"},
+  // Matija Sorić M02 – 9
+  {n:"Matija Sorić",k:"M02",s:2015,kolo:1,t:"sl",v:"00:28,99"},
+  {n:"Matija Sorić",k:"M02",s:2015,kolo:2,t:"sl",v:"00:28,75"},
+  {n:"Matija Sorić",k:"M02",s:2015,kolo:3,t:"sl",v:"00:29,30"},
+  {n:"Matija Sorić",k:"M02",s:2015,kolo:4,t:"sl",v:"00:29,03"},
+  {n:"Matija Sorić",k:"M02",s:2015,kolo:5,t:"sl",v:"00:29,07"},
+  {n:"Matija Sorić",k:"M02",s:2015,kolo:6,t:"sl",v:"00:28,22"},
+  {n:"Matija Sorić",k:"M02",s:2015,kolo:7,t:"SL",v:"02:31,40"},
+  {n:"Matija Sorić",k:"M02",s:2015,kolo:8,t:"sl",v:"00:28,25"},
+  {n:"Matija Sorić",k:"M02",s:2015,kolo:9,t:"sl",v:"00:29,50"},
+  // Zenon Pavić M09 – 9
+  {n:"Zenon Pavić",k:"M09",s:2015,kolo:1,t:"sl",v:"00:29,46"},
+  {n:"Zenon Pavić",k:"M09",s:2015,kolo:2,t:"sl",v:"00:29,74"},
+  {n:"Zenon Pavić",k:"M09",s:2015,kolo:3,t:"sl",v:"00:29,35"},
+  {n:"Zenon Pavić",k:"M09",s:2015,kolo:4,t:"sl",v:"00:29,34"},
+  {n:"Zenon Pavić",k:"M09",s:2015,kolo:5,t:"sl",v:"00:29,22"},
+  {n:"Zenon Pavić",k:"M09",s:2015,kolo:6,t:"sl",v:"00:29,46"},
+  {n:"Zenon Pavić",k:"M09",s:2015,kolo:7,t:"sl",v:"00:29,41"},
+  {n:"Zenon Pavić",k:"M09",s:2015,kolo:8,t:"sl",v:"00:29,81"},
+  {n:"Zenon Pavić",k:"M09",s:2015,kolo:9,t:"sl",v:"00:29,85"},
+  // Miran Hrđok M04 – 8
+  {n:"Miran Hrđok",k:"M04",s:2015,kolo:1,t:"sl",v:"00:30,87"},
+  {n:"Miran Hrđok",k:"M04",s:2015,kolo:2,t:"sl",v:"00:31,40"},
+  {n:"Miran Hrđok",k:"M04",s:2015,kolo:3,t:"SL",v:"02:33,21"},
+  {n:"Miran Hrđok",k:"M04",s:2015,kolo:4,t:"sl",v:"00:30,46"},
+  {n:"Miran Hrđok",k:"M04",s:2015,kolo:5,t:"sl",v:"00:30,28"},
+  {n:"Miran Hrđok",k:"M04",s:2015,kolo:6,t:"sl",v:"00:38,70"},
+  {n:"Miran Hrđok",k:"M04",s:2015,kolo:7,t:"p",v:"00:39,58"},
+  {n:"Miran Hrđok",k:"M04",s:2015,kolo:8,t:"sl",v:"00:30,20"},
+  // Mladen Maršanić M10 – 8
+  {n:"Mladen Maršanić",k:"M10",s:2015,kolo:1,t:"sl",v:"00:44,62"},
+  {n:"Mladen Maršanić",k:"M10",s:2015,kolo:2,t:"sl",v:"00:45,28"},
+  {n:"Mladen Maršanić",k:"M10",s:2015,kolo:3,t:"sl",v:"00:45,68"},
+  {n:"Mladen Maršanić",k:"M10",s:2015,kolo:4,t:"sl",v:"00:52,40"},
+  {n:"Mladen Maršanić",k:"M10",s:2015,kolo:5,t:"sl",v:"00:47,21"},
+  {n:"Mladen Maršanić",k:"M10",s:2015,kolo:6,t:"sl",v:"00:45,03"},
+  {n:"Mladen Maršanić",k:"M10",s:2015,kolo:7,t:"sl",v:"00:49,24"},
+  {n:"Mladen Maršanić",k:"M10",s:2015,kolo:8,t:"sl",v:"00:46,30"},
+  // Jasmin Dizdarević M08 – 7
+  {n:"Jasmin Dizdarević",k:"M08",s:2015,kolo:1,t:"sl",v:"00:33,39"},
+  {n:"Jasmin Dizdarević",k:"M08",s:2015,kolo:2,t:"sl",v:"00:34,68"},
+  {n:"Jasmin Dizdarević",k:"M08",s:2015,kolo:3,t:"sl",v:"00:34,13"},
+  {n:"Jasmin Dizdarević",k:"M08",s:2015,kolo:4,t:"sl",v:"00:32,99"},
+  {n:"Jasmin Dizdarević",k:"M08",s:2015,kolo:5,t:"sl",v:"00:33,72"},
+  {n:"Jasmin Dizdarević",k:"M08",s:2015,kolo:6,t:"SL",v:"02:59,89"},
+  {n:"Jasmin Dizdarević",k:"M08",s:2015,kolo:7,t:"sl",v:"00:32,65"},
+  // Renato Richter M08 – 7
+  {n:"Renato Richter",k:"M08",s:2015,kolo:1,t:"sl",v:"00:33,84"},
+  {n:"Renato Richter",k:"M08",s:2015,kolo:2,t:"sl",v:"00:34,08"},
+  {n:"Renato Richter",k:"M08",s:2015,kolo:3,t:"sl",v:"00:31,87"},
+  {n:"Renato Richter",k:"M08",s:2015,kolo:4,t:"SL",v:"00:32,64"},
+  {n:"Renato Richter",k:"M08",s:2015,kolo:5,t:"sl",v:"00:31,85"},
+  {n:"Renato Richter",k:"M08",s:2015,kolo:6,t:"sl",v:"00:32,34"},
+  {n:"Renato Richter",k:"M08",s:2015,kolo:7,t:"sl",v:"00:33,53"},
+  // Borko Prvan M10 – 7
+  {n:"Borko Prvan",k:"M10",s:2015,kolo:1,t:"SL",v:"02:36,43"},
+  {n:"Borko Prvan",k:"M10",s:2015,kolo:2,t:"sl",v:"00:32,40"},
+  {n:"Borko Prvan",k:"M10",s:2015,kolo:3,t:"SL",v:"02:36,11"},
+  {n:"Borko Prvan",k:"M10",s:2015,kolo:4,t:"SL",v:"02:32,30"},
+  {n:"Borko Prvan",k:"M10",s:2015,kolo:5,t:"P",v:"03:26,50"},
+  {n:"Borko Prvan",k:"M10",s:2015,kolo:6,t:"P",v:"03:21,16"},
+  {n:"Borko Prvan",k:"M10",s:2015,kolo:7,t:"P",v:"03:22,35"},
+  // Mario Vukšić M07 – 7
+  {n:"Mario Vukšić",k:"M07",s:2015,kolo:1,t:"sl",v:"00:40,45"},
+  {n:"Mario Vukšić",k:"M07",s:2015,kolo:2,t:"sl",v:"00:39,81"},
+  {n:"Mario Vukšić",k:"M07",s:2015,kolo:3,t:"sl",v:"00:42,81"},
+  {n:"Mario Vukšić",k:"M07",s:2015,kolo:4,t:"sl",v:"00:43,06"},
+  {n:"Mario Vukšić",k:"M07",s:2015,kolo:5,t:"SL",v:"03:54,87"},
+  {n:"Mario Vukšić",k:"M07",s:2015,kolo:6,t:"SL",v:"03:49,59"},
+  {n:"Mario Vukšić",k:"M07",s:2015,kolo:7,t:"SL",v:"03:42,09"},
+  // Roman Richter M03 – 7
+  {n:"Roman Richter",k:"M03",s:2015,kolo:1,t:"p",v:"00:35,35"},
+  {n:"Roman Richter",k:"M03",s:2015,kolo:2,t:"d",v:"00:29,44"},
+  {n:"Roman Richter",k:"M03",s:2015,kolo:3,t:"sl",v:"00:26,38"},
+  {n:"Roman Richter",k:"M03",s:2015,kolo:4,t:"sl",v:"00:26,09"},
+  {n:"Roman Richter",k:"M03",s:2015,kolo:5,t:"d",v:"00:27,43"},
+  {n:"Roman Richter",k:"M03",s:2015,kolo:6,t:"d",v:"00:29,40"},
+  {n:"Roman Richter",k:"M03",s:2015,kolo:7,t:"sl",v:"00:25,88"},
+  // Tomislav Pisarić M12 – 7
+  {n:"Tomislav Pisarić",k:"M12",s:2015,kolo:1,t:"p",v:"00:58,55"},
+  {n:"Tomislav Pisarić",k:"M12",s:2015,kolo:2,t:"p",v:"00:57,66"},
+  {n:"Tomislav Pisarić",k:"M12",s:2015,kolo:3,t:"p",v:"00:56,97"},
+  {n:"Tomislav Pisarić",k:"M12",s:2015,kolo:4,t:"p",v:"00:57,24"},
+  {n:"Tomislav Pisarić",k:"M12",s:2015,kolo:5,t:"p",v:"00:59,28"},
+  {n:"Tomislav Pisarić",k:"M12",s:2015,kolo:6,t:"p",v:"00:58,87"},
+  {n:"Tomislav Pisarić",k:"M12",s:2015,kolo:7,t:"p",v:"01:00,35"},
+  // Zdravko Kolarić M10 – 7
+  {n:"Zdravko Kolarić",k:"M10",s:2015,kolo:1,t:"sl",v:"00:55,26"},
+  {n:"Zdravko Kolarić",k:"M10",s:2015,kolo:2,t:"sl",v:"00:55,90"},
+  {n:"Zdravko Kolarić",k:"M10",s:2015,kolo:3,t:"sl",v:"00:58,41"},
+  {n:"Zdravko Kolarić",k:"M10",s:2015,kolo:4,t:"sl",v:"00:55,55"},
+  {n:"Zdravko Kolarić",k:"M10",s:2015,kolo:5,t:"sl",v:"00:54,03"},
+  {n:"Zdravko Kolarić",k:"M10",s:2015,kolo:6,t:"sl",v:"00:56,16"},
+  {n:"Zdravko Kolarić",k:"M10",s:2015,kolo:7,t:"sl",v:"00:56,09"},
+  // Željko Pavlin M09 – 6
+  {n:"Željko Pavlin",k:"M09",s:2015,kolo:1,t:"sl",v:"00:40,99"},
+  {n:"Željko Pavlin",k:"M09",s:2015,kolo:2,t:"sl",v:"00:40,15"},
+  {n:"Željko Pavlin",k:"M09",s:2015,kolo:3,t:"p",v:"00:50,34"},
+  {n:"Željko Pavlin",k:"M09",s:2015,kolo:4,t:"p",v:"00:49,08"},
+  {n:"Željko Pavlin",k:"M09",s:2015,kolo:5,t:"p",v:"00:48,69"},
+  {n:"Željko Pavlin",k:"M09",s:2015,kolo:6,t:"p",v:"00:49,58"},
+  // Ivo Petković M11 – 5
+  {n:"Ivo Petković",k:"M11",s:2015,kolo:1,t:"sl",v:"00:51,49"},
+  {n:"Ivo Petković",k:"M11",s:2015,kolo:2,t:"sl",v:"00:53,73"},
+  {n:"Ivo Petković",k:"M11",s:2015,kolo:3,t:"sl",v:"00:50,88"},
+  {n:"Ivo Petković",k:"M11",s:2015,kolo:4,t:"sl",v:"00:53,78"},
+  {n:"Ivo Petković",k:"M11",s:2015,kolo:5,t:"sl",v:"00:51,73"},
+  // Berislav Gauš M11 – 4
+  {n:"Berislav Gauš",k:"M11",s:2015,kolo:1,t:"sl",v:"00:34,81"},
+  {n:"Berislav Gauš",k:"M11",s:2015,kolo:2,t:"sl",v:"00:34,22"},
+  {n:"Berislav Gauš",k:"M11",s:2015,kolo:3,t:"sl",v:"00:34,08"},
+  {n:"Berislav Gauš",k:"M11",s:2015,kolo:4,t:"sl",v:"00:33,61"},
+  // Boris Korbar M08 – 4
+  {n:"Boris Korbar",k:"M08",s:2015,kolo:1,t:"SL",v:"02:49,37"},
+  {n:"Boris Korbar",k:"M08",s:2015,kolo:2,t:"SL",v:"02:52,58"},
+  {n:"Boris Korbar",k:"M08",s:2015,kolo:3,t:"SL",v:"02:50,49"},
+  {n:"Boris Korbar",k:"M08",s:2015,kolo:4,t:"SL",v:"02:52,55"},
+  // Goran Marović M05 – 4
+  {n:"Goran Marović",k:"M05",s:2015,kolo:1,t:"sl",v:"00:31,69"},
+  {n:"Goran Marović",k:"M05",s:2015,kolo:2,t:"sl",v:"00:33,70"},
+  {n:"Goran Marović",k:"M05",s:2015,kolo:3,t:"sl",v:"00:31,68"},
+  {n:"Goran Marović",k:"M05",s:2015,kolo:4,t:"SL",v:"02:41,59"},
+  // Predrag Šarec M08 – 4
+  {n:"Predrag Šarec",k:"M08",s:2015,kolo:1,t:"sl",v:"00:38,21"},
+  {n:"Predrag Šarec",k:"M08",s:2015,kolo:2,t:"sl",v:"00:40,80"},
+  {n:"Predrag Šarec",k:"M08",s:2015,kolo:3,t:"sl",v:"00:39,84"},
+  {n:"Predrag Šarec",k:"M08",s:2015,kolo:4,t:"SL",v:"03:13,97"},
+  // Rade Dubreta M04 – 4
+  {n:"Rade Dubreta",k:"M04",s:2015,kolo:1,t:"l",v:"00:34,02"},
+  {n:"Rade Dubreta",k:"M04",s:2015,kolo:2,t:"sl",v:"00:28,78"},
+  {n:"Rade Dubreta",k:"M04",s:2015,kolo:3,t:"sl",v:"00:28,66"},
+  {n:"Rade Dubreta",k:"M04",s:2015,kolo:4,t:"sl",v:"00:28,97"},
+  // Saša Oroz M03 – 4
+  {n:"Saša Oroz",k:"M03",s:2015,kolo:1,t:"sl",v:"00:26,46"},
+  {n:"Saša Oroz",k:"M03",s:2015,kolo:2,t:"sl",v:"00:26,22"},
+  {n:"Saša Oroz",k:"M03",s:2015,kolo:3,t:"sl",v:"00:25,93"},
+  {n:"Saša Oroz",k:"M03",s:2015,kolo:4,t:"l",v:"00:30,45"},
+  // Marijo Ivić M05 – 4
+  {n:"Marijo Ivić",k:"M05",s:2015,kolo:1,t:"sl",v:"00:36,25"},
+  {n:"Marijo Ivić",k:"M05",s:2015,kolo:2,t:"sl",v:"00:38,37"},
+  {n:"Marijo Ivić",k:"M05",s:2015,kolo:3,t:"sl",v:"00:38,96"},
+  {n:"Marijo Ivić",k:"M05",s:2015,kolo:4,t:"sl",v:"00:38,88"},
+  // Željko Kosovel M10 – 4
+  {n:"Željko Kosovel",k:"M10",s:2015,kolo:1,t:"sl",v:"00:45,84"},
+  {n:"Željko Kosovel",k:"M10",s:2015,kolo:2,t:"sl",v:"00:51,16"},
+  {n:"Željko Kosovel",k:"M10",s:2015,kolo:3,t:"sl",v:"00:50,66"},
+  {n:"Željko Kosovel",k:"M10",s:2015,kolo:4,t:"sl",v:"00:50,94"},
+  // triple
+  {n:"Antun Rupa",k:"M10",s:2015,kolo:1,t:"l",v:"01:41,88"},{n:"Antun Rupa",k:"M10",s:2015,kolo:2,t:"l",v:"01:33,49"},{n:"Antun Rupa",k:"M10",s:2015,kolo:3,t:"l",v:"01:33,86"},
+  {n:"Damir Lisac",k:"M11",s:2015,kolo:1,t:"p",v:"01:17,68"},{n:"Damir Lisac",k:"M11",s:2015,kolo:2,t:"l",v:"01:20,34"},{n:"Damir Lisac",k:"M11",s:2015,kolo:3,t:"p",v:"01:31,04"},
+  {n:"Darko Kuzle",k:"M11",s:2015,kolo:1,t:"sl",v:"00:51,11"},{n:"Darko Kuzle",k:"M11",s:2015,kolo:2,t:"sl",v:"00:51,03"},{n:"Darko Kuzle",k:"M11",s:2015,kolo:3,t:"sl",v:"00:50,31"},
+  {n:"Davor Kukolja",k:"M04",s:2015,kolo:1,t:"sl",v:"00:39,40"},{n:"Davor Kukolja",k:"M04",s:2015,kolo:2,t:"sl",v:"00:37,21"},{n:"Davor Kukolja",k:"M04",s:2015,kolo:3,t:"SL",v:"03:35,98"},
+  {n:"Goran Popović",k:"M09",s:2015,kolo:1,t:"p",v:"00:36,08"},{n:"Goran Popović",k:"M09",s:2015,kolo:2,t:"p",v:"00:36,46"},{n:"Goran Popović",k:"M09",s:2015,kolo:3,t:"p",v:"00:36,53"},
+  {n:"Ivan Kukolja",k:"M04",s:2015,kolo:1,t:"sl",v:"00:29,41"},{n:"Ivan Kukolja",k:"M04",s:2015,kolo:2,t:"sl",v:"00:28,78"},{n:"Ivan Kukolja",k:"M04",s:2015,kolo:3,t:"sl",v:"00:29,58"},
+  {n:"Luka Šimić",k:"M09",s:2015,kolo:1,t:"sl",v:"00:52,18"},{n:"Luka Šimić",k:"M09",s:2015,kolo:2,t:"sl",v:"00:50,18"},{n:"Luka Šimić",k:"M09",s:2015,kolo:3,t:"sl",v:"00:51,65"},
+  {n:"Ranko Defrančeski",k:"M08",s:2015,kolo:1,t:"SL",v:"03:09,25"},{n:"Ranko Defrančeski",k:"M08",s:2015,kolo:2,t:"SL",v:"03:08,97"},{n:"Ranko Defrančeski",k:"M08",s:2015,kolo:3,t:"SL",v:"03:04,18"},
+  {n:"Valerio Radotić",k:"M06",s:2015,kolo:1,t:"sl",v:"00:30,93"},{n:"Valerio Radotić",k:"M06",s:2015,kolo:2,t:"sl",v:"00:31,34"},{n:"Valerio Radotić",k:"M06",s:2015,kolo:3,t:"sl",v:"00:30,81"},
+  {n:"Andrija Šaban",k:"M07",s:2015,kolo:1,t:"SL",v:"03:22,50"},{n:"Andrija Šaban",k:"M07",s:2015,kolo:2,t:"SL",v:"03:21,20"},{n:"Andrija Šaban",k:"M07",s:2015,kolo:3,t:"SL",v:"03:21,27"},
+  // double
+  {n:"Alan Trninić",k:"M04",s:2015,kolo:1,t:"sl",v:"00:44,84"},{n:"Alan Trninić",k:"M04",s:2015,kolo:2,t:"SL",v:"04:06,18"},
+  {n:"Andrej Repanić",k:"M03",s:2015,kolo:1,t:"sl",v:"00:30,81"},{n:"Andrej Repanić",k:"M03",s:2015,kolo:2,t:"sl",v:"00:30,73"},
+  {n:"Dušan Davidović",k:"M14",s:2015,kolo:1,t:"sl",v:"01:28,08"},{n:"Dušan Davidović",k:"M14",s:2015,kolo:2,t:"sl",v:"01:24,17"},
+  {n:"Ivan Miko",k:"M03",s:2015,kolo:1,t:"p",v:"00:54,53"},{n:"Ivan Miko",k:"M03",s:2015,kolo:2,t:"sl",v:"00:54,65"},
+  {n:"Luka Biondić",k:"M04",s:2015,kolo:1,t:"sl",v:"00:29,19"},{n:"Luka Biondić",k:"M04",s:2015,kolo:2,t:"sl",v:"00:28,68"},
+  {n:"Marcel Leppée",k:"M10",s:2015,kolo:1,t:"L",v:"07:51,58"},{n:"Marcel Leppée",k:"M10",s:2015,kolo:2,t:"L",v:"07:52,40"},
+  {n:"Marko Nardelli",k:"M06",s:2015,kolo:1,t:"d",v:"00:41,46"},{n:"Marko Nardelli",k:"M06",s:2015,kolo:2,t:"d",v:"00:44,87"},
+  {n:"Marko Tot",k:"M03",s:2015,kolo:1,t:"sl",v:"00:31,02"},{n:"Marko Tot",k:"M03",s:2015,kolo:2,t:"sl",v:"00:30,65"},
+  {n:"Mikula Mužić",k:"M01",s:2015,kolo:1,t:"sl",v:"00:52,19"},{n:"Mikula Mužić",k:"M01",s:2015,kolo:2,t:"sl",v:"00:50,47"},
+  {n:"Mladen Čižić",k:"M08",s:2015,kolo:1,t:"sl",v:"00:44,47"},{n:"Mladen Čižić",k:"M08",s:2015,kolo:2,t:"sl",v:"00:43,46"},
+  {n:"Stjepan Žagar",k:"M04",s:2015,kolo:1,t:"sl",v:"00:46,22"},{n:"Stjepan Žagar",k:"M04",s:2015,kolo:2,t:"SL",v:"04:06,89"},
+  {n:"Vladimir Štorek",k:"M08",s:2015,kolo:1,t:"l",v:"01:20,05"},{n:"Vladimir Štorek",k:"M08",s:2015,kolo:2,t:"p",v:"01:20,50"},
+  {n:"Žarko Malić",k:"M08",s:2015,kolo:1,t:"sl",v:"00:35,62"},{n:"Žarko Malić",k:"M08",s:2015,kolo:2,t:"sl",v:"00:34,84"},
+  {n:"Željko Androić",k:"M05",s:2015,kolo:1,t:"sl",v:"00:50,45"},{n:"Željko Androić",k:"M05",s:2015,kolo:2,t:"sl",v:"00:52,74"},
+  {n:"Željko Gregoran",k:"M09",s:2015,kolo:1,t:"p",v:"01:06,05"},{n:"Željko Gregoran",k:"M09",s:2015,kolo:2,t:"p",v:"01:04,03"},
+  {n:"Goran Ožbolt",k:"M08",s:2015,kolo:1,t:"sl",v:"00:40,19"},{n:"Goran Ožbolt",k:"M08",s:2015,kolo:2,t:"sl",v:"00:40,37"},
+  {n:"Saša Crnojević",k:"M05",s:2015,kolo:1,t:"sl",v:"00:33,72"},{n:"Saša Crnojević",k:"M05",s:2015,kolo:2,t:"sl",v:"00:35,50"},
+  // single – M 2015
+  {n:"Antonio Morić",k:"M09",s:2015,kolo:1,t:"sl",v:"00:58,84"},
+  {n:"Boris Vrdoljak",k:"M07",s:2015,kolo:1,t:"SL",v:"03:07,28"},
+  {n:"Božo Lukin",k:"M07",s:2015,kolo:1,t:"sl",v:"00:29,90"},
+  {n:"Darko Pavor",k:"M06",s:2015,kolo:1,t:"p",v:"00:55,97"},
+  {n:"Goran Baljkas",k:"M07",s:2015,kolo:1,t:"sl",v:"00:57,55"},
+  {n:"Hrvoje Maligec",k:"M01",s:2015,kolo:1,t:"p",v:"00:51,10"},
+  {n:"Igor Cvek",k:"M07",s:2015,kolo:1,t:"sl",v:"00:35,81"},
+  {n:"Igor Mlinarić",k:"M05",s:2015,kolo:1,t:"SL",v:"03:42,55"},
+  {n:"Ivica Radović",k:"M06",s:2015,kolo:1,t:"sl",v:"00:40,23"},
+  {n:"Karlo Tomičić",k:"M05",s:2015,kolo:1,t:"SL",v:"03:54,37"},
+  {n:"Krešimir Štark",k:"M06",s:2015,kolo:1,t:"sl",v:"00:37,68"},
+  {n:"Lovro Lukin",k:"M01",s:2015,kolo:1,t:"sl",v:"00:41,68"},
+  {n:"Markko",k:"M04",s:2015,kolo:1,t:"sl",v:"00:28,02"},
+  {n:"Marko Vdović",k:"M04",s:2015,kolo:1,t:"sl",v:"00:35,21"},
+  {n:"Matej Sušnik",k:"M05",s:2015,kolo:1,t:"p",v:"00:35,48"},
+  {n:"Matija Renić",k:"M03",s:2015,kolo:1,t:"sl",v:"00:33,68"},
+  {n:"Mato Smrdelj",k:"M06",s:2015,kolo:1,t:"sl",v:"00:30,98"},
+  {n:"Mislav Škacan",k:"M02",s:2015,kolo:1,t:"sl",v:"00:45,90"},
+  {n:"Mladen Majić",k:"M06",s:2015,kolo:1,t:"sl",v:"00:34,12"},
+  {n:"Nino Preložnjak",k:"M03",s:2015,kolo:1,t:"sl",v:"00:32,40"},
+  {n:"Paško Mužić",k:"M02",s:2015,kolo:1,t:"p",v:"00:57,30"},
+  {n:"Siniša Staničić",k:"M07",s:2015,kolo:1,t:"M",v:"02:43,03"},
+  {n:"Tihomir Marjanović",k:"M05",s:2015,kolo:1,t:"p",v:"01:30,85"},
+  {n:"Tomislav Cerovski",k:"M04",s:2015,kolo:1,t:"p",v:"01:09,84"},
+  {n:"Tomislav Jalušić",k:"M08",s:2015,kolo:1,t:"SL",v:"03:24,13"},
+  {n:"Vladimir Krstić",k:"M06",s:2015,kolo:1,t:"sl",v:"00:42,30"},
+  {n:"Zdenko Pečnik",k:"M06",s:2015,kolo:1,t:"sl",v:"00:44,99"},
+  {n:"Zvonimir Matasović",k:"M10",s:2015,kolo:1,t:"sl",v:"01:05,62"},
+  {n:"Željko Blaće",k:"M05",s:2015,kolo:1,t:"p",v:"00:43,24"},
+  {n:"Željko Blagus",k:"M12",s:2015,kolo:1,t:"l",v:"01:48,11"},
+  {n:"Dražen Stopić",k:"M03",s:2015,kolo:1,t:"sl",v:"01:13,85"},
+  {n:"Bojan Šimić",k:"M05",s:2015,kolo:1,t:"sl",v:"00:50,12"},
+  {n:"Vladimir Dijan",k:"M06",s:2015,kolo:1,t:"sl",v:"00:48,97"},
+  {n:"Marko Boras",k:"M03",s:2015,kolo:1,t:"sl",v:"00:31,37"},
+  {n:"Goran Gabaj",k:"M04",s:2015,kolo:1,t:"sl",v:"00:30,22"},
+  {n:"Dinko Matić",k:"M04",s:2015,kolo:1,t:"sl",v:"00:24,98"},
+  // ── 2015 – Aqua3atlon ────────────────────────────────────
+  {n:"Borko Prvan",k:"M10",s:2015,kolo:1,t:"a3",v:"17:47,78"},
+  {n:"Borko Prvan",k:"M10",s:2015,kolo:2,t:"a3",v:"17:31,46"},
+  {n:"Borko Prvan",k:"M10",s:2015,kolo:3,t:"a3",v:"17:22,91"},
+  {n:"Borko Prvan",k:"M10",s:2015,kolo:4,t:"a3",v:"18:58,12"},
+  {n:"Danijel Raković",k:"M02",s:2015,kolo:1,t:"a3",v:"21:31,58"},
+  {n:"Danijel Raković",k:"M02",s:2015,kolo:2,t:"a3",v:"20:23,58"},
+  {n:"Danijel Raković",k:"M02",s:2015,kolo:3,t:"a3",v:"20:02,14"},
+  {n:"Dorja Anić",k:"Ž02",s:2015,kolo:1,t:"a3",v:"19:27,74"},
+  {n:"Andrej Repanić",k:"M03",s:2015,kolo:1,t:"a3",v:"25:02,18"},
+  {n:"Hrvoje Maligec",k:"M01",s:2015,kolo:1,t:"a3",v:"28:27,65"},
+  {n:"Vlatka Maligec Filipčić",k:"Ž07",s:2015,kolo:1,t:"a3",v:"28:39,58"},
+  // ── 2018 – ŽENE ──────────────────────────────────────────
+  {n:"Vesna Jakšić",k:"Ž10",s:2018,kolo:1,t:"sl",v:"00:41,86"},
+  {n:"Vesna Jakšić",k:"Ž10",s:2018,kolo:2,t:"sl",v:"00:42,81"},
+  {n:"Vesna Jakšić",k:"Ž10",s:2018,kolo:3,t:"sl",v:"00:41,02"},
+  {n:"Vesna Jakšić",k:"Ž10",s:2018,kolo:4,t:"sl",v:"00:42,21"},
+  {n:"Vesna Jakšić",k:"Ž10",s:2018,kolo:5,t:"sl",v:"00:40,55"},
+  {n:"Vesna Jakšić",k:"Ž10",s:2018,kolo:6,t:"sl",v:"00:42,02"},
+  {n:"Vesna Jakšić",k:"Ž10",s:2018,kolo:7,t:"sl",v:"00:42,92"},
+  {n:"Branka Divčić",k:"Ž11",s:2018,kolo:1,t:"SL",v:"06:32,68"},
+  {n:"Branka Divčić",k:"Ž11",s:2018,kolo:2,t:"SL",v:"06:22,27"},
+  {n:"Branka Divčić",k:"Ž11",s:2018,kolo:3,t:"SL",v:"06:55,08"},
+  {n:"Branka Divčić",k:"Ž11",s:2018,kolo:4,t:"SL",v:"06:21,08"},
+  {n:"Branka Divčić",k:"Ž11",s:2018,kolo:5,t:"p",v:"01:09,52"},
+  {n:"Branka Divčić",k:"Ž11",s:2018,kolo:6,t:"p",v:"01:10,96"},
+  {n:"Melita Faber",k:"Ž08",s:2018,kolo:1,t:"p",v:"00:59,86"},
+  {n:"Melita Faber",k:"Ž08",s:2018,kolo:2,t:"sl",v:"00:42,24"},
+  {n:"Melita Faber",k:"Ž08",s:2018,kolo:3,t:"sl",v:"00:40,65"},
+  {n:"Melita Faber",k:"Ž08",s:2018,kolo:4,t:"l",v:"00:48,32"},
+  {n:"Melita Faber",k:"Ž08",s:2018,kolo:5,t:"sl",v:"00:41,58"},
+  {n:"Melita Faber",k:"Ž08",s:2018,kolo:6,t:"sl",v:"00:40,80"},
+  {n:"Viktorija Ivić",k:"Ž01",s:2018,kolo:1,t:"sl",v:"00:34,11"},
+  {n:"Viktorija Ivić",k:"Ž01",s:2018,kolo:2,t:"sl",v:"00:32,83"},
+  {n:"Viktorija Ivić",k:"Ž01",s:2018,kolo:3,t:"sl",v:"00:34,45"},
+  {n:"Viktorija Ivić",k:"Ž01",s:2018,kolo:4,t:"sl",v:"00:33,93"},
+  {n:"Viktorija Ivić",k:"Ž01",s:2018,kolo:5,t:"sl",v:"00:33,99"},
+  {n:"Viktorija Ivić",k:"Ž01",s:2018,kolo:6,t:"p",v:"00:46,11"},
+  {n:"Zorana Bujas Petković",k:"Ž11",s:2018,kolo:1,t:"p",v:"01:09,92"},
+  {n:"Zorana Bujas Petković",k:"Ž11",s:2018,kolo:2,t:"p",v:"01:04,33"},
+  {n:"Zorana Bujas Petković",k:"Ž11",s:2018,kolo:3,t:"sl",v:"01:04,58"},
+  {n:"Zorana Bujas Petković",k:"Ž11",s:2018,kolo:4,t:"p",v:"01:05,24"},
+  {n:"Zorana Bujas Petković",k:"Ž11",s:2018,kolo:5,t:"p",v:"01:05,21"},
+  {n:"Zorana Bujas Petković",k:"Ž11",s:2018,kolo:6,t:"p",v:"01:06,08"},
+  {n:"Tea Faber",k:"Ž03",s:2018,kolo:1,t:"sl",v:"00:45,05"},
+  {n:"Tea Faber",k:"Ž03",s:2018,kolo:2,t:"sl",v:"00:43,33"},
+  {n:"Tea Faber",k:"Ž03",s:2018,kolo:3,t:"l",v:"00:48,21"},
+  {n:"Tea Faber",k:"Ž03",s:2018,kolo:4,t:"sl",v:"00:42,05"},
+  {n:"Tea Faber",k:"Ž03",s:2018,kolo:5,t:"sl",v:"00:42,61"},
+  {n:"Mia Marušić",k:"Ž04",s:2018,kolo:1,t:"sl",v:"00:30,64"},
+  {n:"Mia Marušić",k:"Ž04",s:2018,kolo:2,t:"d",v:"00:31,99"},
+  {n:"Mia Marušić",k:"Ž04",s:2018,kolo:3,t:"d",v:"00:31,86"},
+  {n:"Mia Marušić",k:"Ž04",s:2018,kolo:4,t:"SL",v:"02:33,18"},
+  {n:"Tereza Vuković Butorac",k:"Ž06",s:2018,kolo:1,t:"SL",v:"04:27,96"},
+  {n:"Tereza Vuković Butorac",k:"Ž06",s:2018,kolo:2,t:"SL",v:"04:19,78"},
+  {n:"Tereza Vuković Butorac",k:"Ž06",s:2018,kolo:3,t:"SL",v:"04:19,61"},
+  {n:"Tereza Vuković Butorac",k:"Ž06",s:2018,kolo:4,t:"SL",v:"04:23,11"},
+  {n:"Ana Knežević",k:"Ž05",s:2018,kolo:1,t:"sl",v:"00:55,14"},
+  {n:"Ana Knežević",k:"Ž05",s:2018,kolo:2,t:"sl",v:"01:00,21"},
+  {n:"Ana Knežević",k:"Ž05",s:2018,kolo:3,t:"sl",v:"00:58,61"},
+  {n:"Anja Krajišnik",k:"Ž03",s:2018,kolo:1,t:"sl",v:"00:39,80"},
+  {n:"Anja Krajišnik",k:"Ž03",s:2018,kolo:2,t:"sl",v:"00:42,27"},
+  {n:"Anja Krajišnik",k:"Ž03",s:2018,kolo:3,t:"sl",v:"00:43,55"},
+  {n:"Jelena Kudelić",k:"Ž03",s:2018,kolo:1,t:"sl",v:"00:32,39"},
+  {n:"Jelena Kudelić",k:"Ž03",s:2018,kolo:2,t:"p",v:"00:45,99"},
+  {n:"Jelena Kudelić",k:"Ž03",s:2018,kolo:3,t:"d",v:"00:37,05"},
+  {n:"Nada Nagy",k:"Ž08",s:2018,kolo:1,t:"p",v:"01:20,21"},
+  {n:"Nada Nagy",k:"Ž08",s:2018,kolo:2,t:"p",v:"01:13,24"},
+  {n:"Nada Nagy",k:"Ž08",s:2018,kolo:3,t:"p",v:"01:18,14"},
+  {n:"Sanja Demut",k:"Ž05",s:2018,kolo:1,t:"SL",v:"03:11,96"},
+  {n:"Sanja Demut",k:"Ž05",s:2018,kolo:2,t:"SL",v:"02:59,14"},
+  {n:"Sanja Demut",k:"Ž05",s:2018,kolo:3,t:"SL",v:"02:50,13"},
+  {n:"Valentina Čurila",k:"Ž02",s:2018,kolo:1,t:"L",v:"02:44,64"},
+  {n:"Valentina Čurila",k:"Ž02",s:2018,kolo:2,t:"SL",v:"02:27,37"},
+  {n:"Valentina Čurila",k:"Ž02",s:2018,kolo:3,t:"l",v:"00:32,46"},
+  {n:"Zrinka Srkoč",k:"Ž07",s:2018,kolo:1,t:"sl",v:"00:43,90"},
+  {n:"Zrinka Srkoč",k:"Ž07",s:2018,kolo:2,t:"sl",v:"00:41,58"},
+  // single – Ž 2018
+  {n:"Ana Čardarević",k:"Ž05",s:2018,kolo:1,t:"sl",v:"01:02,83"},
+  {n:"Anđa Šimić",k:"Ž09",s:2018,kolo:1,t:"l",v:"01:15,18"},
+  {n:"Beata Glinska",k:"Ž07",s:2018,kolo:1,t:"SL",v:"03:43,52"},
+  {n:"Dorijana Kavčić",k:"Ž05",s:2018,kolo:1,t:"sl",v:"00:49,99"},
+  {n:"Iva Čičak",k:"Ž0",s:2018,kolo:1,t:"p",v:"01:26,40"},
+  {n:"Ivona Hribernik",k:"Ž04",s:2018,kolo:1,t:"SL",v:"03:25,43"},
+  {n:"Jadranka Katunar Marić",k:"Ž12",s:2018,kolo:1,t:"p",v:"01:33,37"},
+  {n:"Jelena Bošković",k:"Ž05",s:2018,kolo:1,t:"sl",v:"00:44,33"},
+  {n:"Jelena Ljubešić",k:"Ž05",s:2018,kolo:1,t:"sl",v:"00:58,24"},
+  {n:"Karmen Tonković-Biščan",k:"Ž09",s:2018,kolo:1,t:"sl",v:"01:47,46"},
+  {n:"Katica Prstec",k:"Ž10",s:2018,kolo:1,t:"sl",v:"01:25,74"},
+  {n:"Kristina Nagy",k:"Ž03",s:2018,kolo:1,t:"p",v:"01:00,21"},
+  {n:"Ljubica Blagus",k:"Ž12",s:2018,kolo:1,t:"p",v:"01:34,02"},
+  {n:"Melita Bogatec Milivojević",k:"Ž12",s:2018,kolo:1,t:"p",v:"01:41,65"},
+  {n:"Snježana Šarenić",k:"Ž06",s:2018,kolo:1,t:"sl",v:"01:02,67"},
+  {n:"Viktorija Kovačević",k:"Ž08",s:2018,kolo:1,t:"l",v:"00:53,40"},
+  {n:"Vjekoslava Marić",k:"Ž07",s:2018,kolo:1,t:"sl",v:"00:49,27"},
+  {n:"Vlatka Pervan",k:"Ž05",s:2018,kolo:1,t:"sl",v:"00:38,30"},
+  // ── 2018 – MUŠKARCI ──────────────────────────────────────
+  {n:"Borko Prvan",k:"M11",s:2018,kolo:1,t:"SL",v:"02:39,30"},
+  {n:"Borko Prvan",k:"M11",s:2018,kolo:2,t:"SL",v:"02:41,11"},
+  {n:"Borko Prvan",k:"M11",s:2018,kolo:3,t:"SL",v:"02:41,39"},
+  {n:"Borko Prvan",k:"M11",s:2018,kolo:4,t:"SL",v:"02:37,21"},
+  {n:"Borko Prvan",k:"M11",s:2018,kolo:5,t:"sl",v:"00:33,83"},
+  {n:"Borko Prvan",k:"M11",s:2018,kolo:6,t:"SL",v:"02:37,40"},
+  {n:"Borko Prvan",k:"M11",s:2018,kolo:7,t:"SL",v:"02:41,39"},
+  {n:"Bruno Škacan",k:"M10",s:2018,kolo:1,t:"sl",v:"00:39,99"},
+  {n:"Bruno Škacan",k:"M10",s:2018,kolo:2,t:"sl",v:"00:37,02"},
+  {n:"Bruno Škacan",k:"M10",s:2018,kolo:3,t:"sl",v:"00:36,99"},
+  {n:"Bruno Škacan",k:"M10",s:2018,kolo:4,t:"sl",v:"00:38,40"},
+  {n:"Bruno Škacan",k:"M10",s:2018,kolo:5,t:"sl",v:"00:38,14"},
+  {n:"Bruno Škacan",k:"M10",s:2018,kolo:6,t:"sl",v:"00:39,52"},
+  {n:"Bruno Škacan",k:"M10",s:2018,kolo:7,t:"p",v:"00:46,74"},
+  {n:"Dinko Srkoč",k:"M07",s:2018,kolo:1,t:"SL",v:"02:51,11"},
+  {n:"Dinko Srkoč",k:"M07",s:2018,kolo:2,t:"SL",v:"02:50,27"},
+  {n:"Dinko Srkoč",k:"M07",s:2018,kolo:3,t:"p",v:"00:49,08"},
+  {n:"Dinko Srkoč",k:"M07",s:2018,kolo:4,t:"sl",v:"00:34,30"},
+  {n:"Dinko Srkoč",k:"M07",s:2018,kolo:5,t:"sl",v:"00:32,39"},
+  {n:"Dinko Srkoč",k:"M07",s:2018,kolo:6,t:"SL",v:"02:47,80"},
+  {n:"Dinko Srkoč",k:"M07",s:2018,kolo:7,t:"SL",v:"02:53,27"},
+  {n:"Ivo Petković",k:"M11",s:2018,kolo:1,t:"sl",v:"00:51,40"},
+  {n:"Ivo Petković",k:"M11",s:2018,kolo:2,t:"sl",v:"00:50,36"},
+  {n:"Ivo Petković",k:"M11",s:2018,kolo:3,t:"sl",v:"00:50,58"},
+  {n:"Ivo Petković",k:"M11",s:2018,kolo:4,t:"sl",v:"00:47,24"},
+  {n:"Ivo Petković",k:"M11",s:2018,kolo:5,t:"sl",v:"00:46,93"},
+  {n:"Ivo Petković",k:"M11",s:2018,kolo:6,t:"sl",v:"00:49,05"},
+  {n:"Ivo Petković",k:"M11",s:2018,kolo:7,t:"sl",v:"00:50,05"},
+  {n:"Tomislav Pisarić",k:"M13",s:2018,kolo:1,t:"l",v:"00:59,36"},
+  {n:"Tomislav Pisarić",k:"M13",s:2018,kolo:2,t:"p",v:"00:56,80"},
+  {n:"Tomislav Pisarić",k:"M13",s:2018,kolo:3,t:"sl",v:"00:50,21"},
+  {n:"Tomislav Pisarić",k:"M13",s:2018,kolo:4,t:"p",v:"00:58,99"},
+  {n:"Tomislav Pisarić",k:"M13",s:2018,kolo:5,t:"l",v:"01:00,99"},
+  {n:"Tomislav Pisarić",k:"M13",s:2018,kolo:6,t:"p",v:"00:58,21"},
+  {n:"Tomislav Pisarić",k:"M13",s:2018,kolo:7,t:"p",v:"00:56,24"},
+  {n:"Zdravko Kolarić",k:"M11",s:2018,kolo:1,t:"sl",v:"00:56,34"},
+  {n:"Zdravko Kolarić",k:"M11",s:2018,kolo:2,t:"sl",v:"00:57,61"},
+  {n:"Zdravko Kolarić",k:"M11",s:2018,kolo:3,t:"sl",v:"00:57,95"},
+  {n:"Zdravko Kolarić",k:"M11",s:2018,kolo:4,t:"sl",v:"00:59,87"},
+  {n:"Zdravko Kolarić",k:"M11",s:2018,kolo:5,t:"sl",v:"00:57,58"},
+  {n:"Zdravko Kolarić",k:"M11",s:2018,kolo:6,t:"sl",v:"01:00,70"},
+  {n:"Zdravko Kolarić",k:"M11",s:2018,kolo:7,t:"sl",v:"00:57,27"},
+  {n:"Željko Pavlin",k:"M09",s:2018,kolo:1,t:"sl",v:"00:41,40"},
+  {n:"Željko Pavlin",k:"M09",s:2018,kolo:2,t:"sl",v:"00:42,33"},
+  {n:"Željko Pavlin",k:"M09",s:2018,kolo:3,t:"sl",v:"00:40,08"},
+  {n:"Željko Pavlin",k:"M09",s:2018,kolo:4,t:"sl",v:"00:41,52"},
+  {n:"Željko Pavlin",k:"M09",s:2018,kolo:5,t:"sl",v:"00:40,93"},
+  {n:"Željko Pavlin",k:"M09",s:2018,kolo:6,t:"sl",v:"00:39,78"},
+  {n:"Željko Pavlin",k:"M09",s:2018,kolo:7,t:"sl",v:"00:41,24"},
+  {n:"Borna Hrestak",k:"M06",s:2018,kolo:1,t:"d",v:"00:30,55"},
+  {n:"Borna Hrestak",k:"M06",s:2018,kolo:2,t:"d",v:"00:30,36"},
+  {n:"Borna Hrestak",k:"M06",s:2018,kolo:3,t:"sl",v:"00:28,05"},
+  {n:"Borna Hrestak",k:"M06",s:2018,kolo:4,t:"sl",v:"00:27,21"},
+  {n:"Borna Hrestak",k:"M06",s:2018,kolo:5,t:"sl",v:"00:27,71"},
+  {n:"Borna Hrestak",k:"M06",s:2018,kolo:6,t:"M",v:"02:44,89"},
+  {n:"Jasmin Dizdarević",k:"M09",s:2018,kolo:1,t:"sl",v:"00:33,70"},
+  {n:"Jasmin Dizdarević",k:"M09",s:2018,kolo:2,t:"sl",v:"00:32,96"},
+  {n:"Jasmin Dizdarević",k:"M09",s:2018,kolo:3,t:"sl",v:"00:33,05"},
+  {n:"Jasmin Dizdarević",k:"M09",s:2018,kolo:4,t:"sl",v:"00:33,02"},
+  {n:"Jasmin Dizdarević",k:"M09",s:2018,kolo:5,t:"sl",v:"00:33,37"},
+  {n:"Jasmin Dizdarević",k:"M09",s:2018,kolo:6,t:"sl",v:"00:33,89"},
+  {n:"Marko Maletić",k:"M05",s:2018,kolo:1,t:"d",v:"00:29,21"},
+  {n:"Marko Maletić",k:"M05",s:2018,kolo:2,t:"d",v:"00:28,65"},
+  {n:"Marko Maletić",k:"M05",s:2018,kolo:3,t:"d",v:"00:28,71"},
+  {n:"Marko Maletić",k:"M05",s:2018,kolo:4,t:"d",v:"00:28,96"},
+  {n:"Marko Maletić",k:"M05",s:2018,kolo:5,t:"d",v:"00:29,11"},
+  {n:"Marko Maletić",k:"M05",s:2018,kolo:6,t:"sl",v:"00:27,99"},
+  {n:"Dražen Vassung",k:"M09",s:2018,kolo:1,t:"sl",v:"00:33,65"},
+  {n:"Dražen Vassung",k:"M09",s:2018,kolo:2,t:"sl",v:"00:32,92"},
+  {n:"Dražen Vassung",k:"M09",s:2018,kolo:3,t:"sl",v:"00:33,21"},
+  {n:"Dražen Vassung",k:"M09",s:2018,kolo:4,t:"sl",v:"00:32,42"},
+  {n:"Dražen Vassung",k:"M09",s:2018,kolo:5,t:"P",v:"03:55,14"},
+  {n:"Mladen Maršanić",k:"M10",s:2018,kolo:1,t:"sl",v:"00:50,39"},
+  {n:"Mladen Maršanić",k:"M10",s:2018,kolo:2,t:"sl",v:"00:48,55"},
+  {n:"Mladen Maršanić",k:"M10",s:2018,kolo:3,t:"sl",v:"00:49,96"},
+  {n:"Mladen Maršanić",k:"M10",s:2018,kolo:4,t:"sl",v:"00:49,58"},
+  {n:"Mladen Maršanić",k:"M10",s:2018,kolo:5,t:"sl",v:"00:47,05"},
+  {n:"Predrag Šarec",k:"M09",s:2018,kolo:1,t:"sl",v:"00:38,33"},
+  {n:"Predrag Šarec",k:"M09",s:2018,kolo:2,t:"sl",v:"00:37,37"},
+  {n:"Predrag Šarec",k:"M09",s:2018,kolo:3,t:"sl",v:"00:38,33"},
+  {n:"Predrag Šarec",k:"M09",s:2018,kolo:4,t:"sl",v:"00:39,11"},
+  {n:"Predrag Šarec",k:"M09",s:2018,kolo:5,t:"sl",v:"00:38,11"},
+  {n:"Ranko Defrančeski",k:"M09",s:2018,kolo:1,t:"SL",v:"03:06,21"},
+  {n:"Ranko Defrančeski",k:"M09",s:2018,kolo:2,t:"sl",v:"00:34,95"},
+  {n:"Ranko Defrančeski",k:"M09",s:2018,kolo:3,t:"sl",v:"00:35,58"},
+  {n:"Ranko Defrančeski",k:"M09",s:2018,kolo:4,t:"sl",v:"00:35,42"},
+  {n:"Ranko Defrančeski",k:"M09",s:2018,kolo:5,t:"sl",v:"00:35,34"},
+  {n:"Dalibor Lončarić",k:"M07",s:2018,kolo:1,t:"sl",v:"00:31,49"},
+  {n:"Dalibor Lončarić",k:"M07",s:2018,kolo:2,t:"sl",v:"00:31,37"},
+  {n:"Dalibor Lončarić",k:"M07",s:2018,kolo:3,t:"sl",v:"00:31,24"},
+  {n:"Dalibor Lončarić",k:"M07",s:2018,kolo:4,t:"sl",v:"00:31,27"},
+  {n:"Darko Kuzle",k:"M12",s:2018,kolo:1,t:"sl",v:"00:52,30"},
+  {n:"Darko Kuzle",k:"M12",s:2018,kolo:2,t:"sl",v:"00:54,81"},
+  {n:"Darko Kuzle",k:"M12",s:2018,kolo:3,t:"sl",v:"00:53,36"},
+  {n:"Darko Kuzle",k:"M12",s:2018,kolo:4,t:"sl",v:"00:50,14"},
+  {n:"Davor Kukolja",k:"M05",s:2018,kolo:1,t:"sl",v:"00:36,21"},
+  {n:"Davor Kukolja",k:"M05",s:2018,kolo:2,t:"sl",v:"00:36,62"},
+  {n:"Davor Kukolja",k:"M05",s:2018,kolo:3,t:"sl",v:"00:36,61"},
+  {n:"Davor Kukolja",k:"M05",s:2018,kolo:4,t:"sl",v:"00:38,78"},
+  {n:"Damir Lisac",k:"M12",s:2018,kolo:1,t:"p",v:"01:33,55"},
+  {n:"Damir Lisac",k:"M12",s:2018,kolo:2,t:"p",v:"01:29,49"},
+  {n:"Damir Lisac",k:"M12",s:2018,kolo:3,t:"p",v:"01:28,92"},
+  {n:"Damir Lisac",k:"M12",s:2018,kolo:4,t:"p",v:"01:30,30"},
+  {n:"Mario Grgat",k:"M06",s:2018,kolo:1,t:"sl",v:"00:42,39"},
+  {n:"Mario Grgat",k:"M06",s:2018,kolo:2,t:"sl",v:"00:45,30"},
+  {n:"Mario Grgat",k:"M06",s:2018,kolo:3,t:"sl",v:"00:41,30"},
+  {n:"Mario Grgat",k:"M06",s:2018,kolo:4,t:"sl",v:"00:38,55"},
+  {n:"Boris Igrec",k:"M06",s:2018,kolo:1,t:"SL",v:"02:56,93"},
+  {n:"Boris Igrec",k:"M06",s:2018,kolo:2,t:"SL",v:"03:03,43"},
+  {n:"Boris Igrec",k:"M06",s:2018,kolo:3,t:"sl",v:"00:31,33"},
+  {n:"Goran Marović",k:"M06",s:2018,kolo:1,t:"sl",v:"00:31,89"},
+  {n:"Goran Marović",k:"M06",s:2018,kolo:2,t:"sl",v:"00:31,33"},
+  {n:"Goran Marović",k:"M06",s:2018,kolo:3,t:"sl",v:"00:31,58"},
+  {n:"Igor Šutak",k:"M07",s:2018,kolo:1,t:"P",v:"02:58,49"},
+  {n:"Igor Šutak",k:"M07",s:2018,kolo:2,t:"p",v:"00:38,21"},
+  {n:"Igor Šutak",k:"M07",s:2018,kolo:3,t:"D",v:"02:59,21"},
+  {n:"Mario Vukšić",k:"M08",s:2018,kolo:1,t:"sl",v:"00:44,65"},
+  {n:"Mario Vukšić",k:"M08",s:2018,kolo:2,t:"sl",v:"00:45,96"},
+  {n:"Mario Vukšić",k:"M08",s:2018,kolo:3,t:"sl",v:"00:46,62"},
+  {n:"Matija Sorić",k:"M03",s:2018,kolo:1,t:"sl",v:"00:29,58"},
+  {n:"Matija Sorić",k:"M03",s:2018,kolo:2,t:"sl",v:"00:28,99"},
+  {n:"Matija Sorić",k:"M03",s:2018,kolo:3,t:"sl",v:"00:28,92"},
+  {n:"Siniša Čubrić",k:"M09",s:2018,kolo:1,t:"sl",v:"00:37,30"},
+  {n:"Siniša Čubrić",k:"M09",s:2018,kolo:2,t:"sl",v:"00:36,52"},
+  {n:"Siniša Čubrić",k:"M09",s:2018,kolo:3,t:"sl",v:"00:37,05"},
+  {n:"Želimir Kukolja",k:"M11",s:2018,kolo:1,t:"sl",v:"00:41,65"},
+  {n:"Želimir Kukolja",k:"M11",s:2018,kolo:2,t:"sl",v:"00:42,95"},
+  {n:"Želimir Kukolja",k:"M11",s:2018,kolo:3,t:"sl",v:"00:41,87"},
+  {n:"Bojan Hudec",k:"M06",s:2018,kolo:1,t:"sl",v:"00:30,45"},
+  {n:"Bojan Hudec",k:"M06",s:2018,kolo:2,t:"SL",v:"02:31,21"},
+  {n:"Bojan Hudec",k:"M06",s:2018,kolo:3,t:"p",v:"00:41,27"},
+  {n:"Boris Korbar",k:"M09",s:2018,kolo:1,t:"SL",v:"02:55,55"},
+  {n:"Boris Korbar",k:"M09",s:2018,kolo:2,t:"SL",v:"02:46,95"},
+  {n:"Boris Korbar",k:"M09",s:2018,kolo:3,t:"sl",v:"00:38,02"},
+  {n:"Ivan Turčinović",k:"M05",s:2018,kolo:1,t:"sl",v:"00:28,55"},
+  {n:"Ivan Turčinović",k:"M05",s:2018,kolo:2,t:"d",v:"00:31,27"},
+  {n:"Ivan Turčinović",k:"M05",s:2018,kolo:3,t:"d",v:"00:32,24"},
+  // double M 2018
+  {n:"Alan Srkoč",k:"M0",s:2018,kolo:1,t:"sl",v:"00:53,40"},{n:"Alan Srkoč",k:"M0",s:2018,kolo:2,t:"sl",v:"00:56,68"},
+  {n:"Hrvoje Jenei",k:"M05",s:2018,kolo:1,t:"sl",v:"00:34,24"},{n:"Hrvoje Jenei",k:"M05",s:2018,kolo:2,t:"sl",v:"00:33,36"},
+  {n:"Ivan Kukolja",k:"M05",s:2018,kolo:1,t:"sl",v:"00:28,92"},{n:"Ivan Kukolja",k:"M05",s:2018,kolo:2,t:"sl",v:"00:28,61"},
+  {n:"Krešimir Štark",k:"M06",s:2018,kolo:1,t:"SL",v:"02:58,84"},{n:"Krešimir Štark",k:"M06",s:2018,kolo:2,t:"SL",v:"03:01,08"},
+  {n:"Luka Šimić",k:"M10",s:2018,kolo:1,t:"l",v:"00:57,61"},{n:"Luka Šimić",k:"M10",s:2018,kolo:2,t:"l",v:"00:56,05"},
+  {n:"Ognjen Đurić",k:"M05",s:2018,kolo:1,t:"SL",v:"04:27,99"},{n:"Ognjen Đurić",k:"M05",s:2018,kolo:2,t:"sl",v:"00:50,37"},
+  {n:"Roman Richter",k:"M04",s:2018,kolo:1,t:"d",v:"00:28,11"},{n:"Roman Richter",k:"M04",s:2018,kolo:2,t:"L",v:"02:38,55"},
+  {n:"Tomislav Lopar",k:"M05",s:2018,kolo:1,t:"D",v:"02:58,11"},{n:"Tomislav Lopar",k:"M05",s:2018,kolo:2,t:"d",v:"00:34,52"},
+  {n:"Vedran Hudec",k:"M06",s:2018,kolo:1,t:"SL",v:"02:35,14"},{n:"Vedran Hudec",k:"M06",s:2018,kolo:2,t:"l",v:"00:35,18"},
+  {n:"Zenon Pavić",k:"M10",s:2018,kolo:1,t:"sl",v:"00:30,92"},{n:"Zenon Pavić",k:"M10",s:2018,kolo:2,t:"sl",v:"00:30,11"},
+  {n:"Zoran Divjak",k:"M06",s:2018,kolo:1,t:"p",v:"01:06,49"},{n:"Zoran Divjak",k:"M06",s:2018,kolo:2,t:"p",v:"01:02,70"},
+  {n:"Berislav Biočić",k:"M06",s:2018,kolo:1,t:"sl",v:"00:31,95"},{n:"Berislav Biočić",k:"M06",s:2018,kolo:2,t:"sl",v:"00:32,84"},
+  {n:"Janko Jurković",k:"M12",s:2018,kolo:1,t:"SL",v:"04:15,78"},{n:"Janko Jurković",k:"M12",s:2018,kolo:2,t:"P",v:"04:32,30"},
+  {n:"Vlado Pilipović",k:"M07",s:2018,kolo:1,t:"SL",v:"02:27,71"},{n:"Vlado Pilipović",k:"M07",s:2018,kolo:2,t:"sl",v:"00:29,30"},
+  {n:"Željko Kosovel",k:"M11",s:2018,kolo:1,t:"sl",v:"00:49,40"},{n:"Željko Kosovel",k:"M11",s:2018,kolo:2,t:"sl",v:"00:51,93"},
+  // single M 2018
+  {n:"Antonio Vrbanec",k:"M03",s:2018,kolo:1,t:"sl",v:"00:42,52"},
+  {n:"Antun Grbić",k:"M08",s:2018,kolo:1,t:"sl",v:"00:40,27"},
+  {n:"Bernardo Rudec",k:"M02",s:2018,kolo:1,t:"sl",v:"00:32,27"},
+  {n:"Božidar Husajina",k:"M08",s:2018,kolo:1,t:"sl",v:"00:38,99"},
+  {n:"Danijel Šimić",k:"M05",s:2018,kolo:1,t:"sl",v:"00:40,92"},
+  {n:"Domagoj Jakopović",k:"M07",s:2018,kolo:1,t:"sl",v:"00:31,43"},
+  {n:"Domagoj Končar",k:"M03",s:2018,kolo:1,t:"sl",v:"00:34,02"},
+  {n:"Duško Kajić",k:"M08",s:2018,kolo:1,t:"sl",v:"00:40,40"},
+  {n:"Franjo Nikolić",k:"M08",s:2018,kolo:1,t:"sl",v:"00:51,21"},
+  {n:"Goran Hudec",k:"M11",s:2018,kolo:1,t:"P",v:"04:37,21"},
+  {n:"Igor Boršić",k:"M06",s:2018,kolo:1,t:"sl",v:"00:35,21"},
+  {n:"Ivo Šafran",k:"M10",s:2018,kolo:1,t:"sl",v:"00:58,08"},
+  {n:"Jasmin Nikšić",k:"M04",s:2018,kolo:1,t:"SL",v:"03:18,89"},
+  {n:"Karlo Buljeta",k:"M01",s:2018,kolo:1,t:"SL",v:"03:33,02"},
+  {n:"Karlo Tomičić",k:"M05",s:2018,kolo:1,t:"sl",v:"00:45,93"},
+  {n:"Krešimir Štajnoher",k:"M06",s:2018,kolo:1,t:"sl",v:"01:27,67"},
+  {n:"Luka Ivas",k:"M05",s:2018,kolo:1,t:"sl",v:"00:36,68"},
+  {n:"Luka Ljubešić",k:"M04",s:2018,kolo:1,t:"sl",v:"00:34,21"},
+  {n:"Luka Šutak",k:"M0",s:2018,kolo:1,t:"sl",v:"00:49,45"},
+  {n:"Marko Capet",k:"M07",s:2018,kolo:1,t:"sl",v:"00:38,46"},
+  {n:"Martin Prstec",k:"M11",s:2018,kolo:1,t:"l",v:"01:29,74"},
+  {n:"Mato Smrdelj",k:"M07",s:2018,kolo:1,t:"sl",v:"00:30,34"},
+  {n:"Miran Hrđok",k:"M04",s:2018,kolo:1,t:"sl",v:"00:30,38"},
+  {n:"Nino Preložnjak",k:"M03",s:2018,kolo:1,t:"sl",v:"00:30,84"},
+  {n:"Rok Jakopović Potz",k:"M01",s:2018,kolo:1,t:"sl",v:"00:58,90"},
+  {n:"Samir Čičak",k:"M08",s:2018,kolo:1,t:"sl",v:"00:50,39"},
+  {n:"Saša Crnojević",k:"M06",s:2018,kolo:1,t:"sl",v:"00:37,33"},
+  {n:"Saša Oroz",k:"M04",s:2018,kolo:1,t:"sl",v:"00:25,80"},
+  {n:"Siniša Šalin",k:"M06",s:2018,kolo:1,t:"sl",v:"00:49,81"},
+  {n:"Slavko Mukavec",k:"M11",s:2018,kolo:1,t:"SL",v:"04:26,84"},
+  {n:"Tihomir Prusina",k:"M06",s:2018,kolo:1,t:"sl",v:"00:35,55"},
+  {n:"Tomislav Ivrlač",k:"M05",s:2018,kolo:1,t:"SL",v:"02:33,58"},
+  {n:"Tomislav Kevo",k:"M03",s:2018,kolo:1,t:"sl",v:"00:46,37"},
+  {n:"Tomislav Stojić",k:"M05",s:2018,kolo:1,t:"sl",v:"00:37,81"},
+  {n:"Vladimir Ilčić",k:"M07",s:2018,kolo:1,t:"sl",v:"00:45,27"},
+  {n:"Zdenko Pećnik",k:"M07",s:2018,kolo:1,t:"sl",v:"00:44,93"},
+  {n:"Žarko Malić",k:"M09",s:2018,kolo:1,t:"SL",v:"02:56,96"},
+  {n:"Želimir Kukolja",k:"M11",s:2018,kolo:1,t:"sl",v:"00:42,80"},
+  {n:"Željko Blagus",k:"M13",s:2018,kolo:1,t:"l",v:"01:43,64"},
+  {n:"Željko Čavlek",k:"M11",s:2018,kolo:1,t:"d",v:"00:41,34"},
+  {n:"Danko Dolinar",k:"M07",s:2018,kolo:1,t:"sl",v:"00:38,65"},
+  {n:"Renato Marjančić",k:"M06",s:2018,kolo:1,t:"D",v:"03:11,80"},
+  // 2018 – Sprint Aqua3atlon – ŽENE
+  {n:"Zorana Bujas Petković",k:"Ž11",s:2018,kolo:1,t:"a3",v:"06:52,14"},
+  {n:"Zorana Bujas Petković",k:"Ž11",s:2018,kolo:2,t:"a3",v:"06:08,52"},
+  {n:"Zorana Bujas Petković",k:"Ž11",s:2018,kolo:3,t:"a3",v:"06:32,05"},
+  {n:"Zorana Bujas Petković",k:"Ž11",s:2018,kolo:4,t:"a3",v:"06:09,37"},
+  {n:"Zorana Bujas Petković",k:"Ž11",s:2018,kolo:5,t:"a3",v:"06:49,89"},
+  {n:"Zorana Bujas Petković",k:"Ž11",s:2018,kolo:6,t:"a3",v:"05:57,64"},
+  {n:"Tea Faber",k:"Ž03",s:2018,kolo:1,t:"a3",v:"04:02,70"},
+  {n:"Tea Faber",k:"Ž03",s:2018,kolo:2,t:"a3",v:"03:43,55"},
+  {n:"Tea Faber",k:"Ž03",s:2018,kolo:3,t:"a3",v:"03:43,02"},
+  {n:"Tea Faber",k:"Ž03",s:2018,kolo:4,t:"a3",v:"03:50,89"},
+  {n:"Tea Faber",k:"Ž03",s:2018,kolo:5,t:"a3",v:"03:42,80"},
+  {n:"Viktorija Kovačević",k:"Ž08",s:2018,kolo:1,t:"a3",v:"05:56,45"},
+  {n:"Jelena Bošković",k:"Ž05",s:2018,kolo:1,t:"a3",v:"03:46,80"},
+  {n:"Dorijana Kavčić",k:"Ž05",s:2018,kolo:1,t:"a3",v:"04:58,05"},
+  {n:"Ivona Hribernik",k:"Ž04",s:2018,kolo:1,t:"a3",v:"03:53,08"},
+  {n:"Ana Čardarević",k:"Ž05",s:2018,kolo:1,t:"a3",v:"06:12,80"},
+  {n:"Jelena Ljubešić",k:"Ž05",s:2018,kolo:1,t:"a3",v:"05:50,96"},
+  // 2018 – Sprint Aqua3atlon – MUŠKARCI
+  {n:"Borna Hrestak",k:"M06",s:2018,kolo:1,t:"a3",v:"03:01,90"},
+  {n:"Borna Hrestak",k:"M06",s:2018,kolo:2,t:"a3",v:"03:03,05"},
+  {n:"Borna Hrestak",k:"M06",s:2018,kolo:3,t:"a3",v:"03:00,64"},
+  {n:"Borna Hrestak",k:"M06",s:2018,kolo:4,t:"a3",v:"02:54,43"},
+  {n:"Borna Hrestak",k:"M06",s:2018,kolo:5,t:"a3",v:"03:14,08"},
+  {n:"Dinko Srkoč",k:"M07",s:2018,kolo:1,t:"a3",v:"03:55,30"},
+  {n:"Dinko Srkoč",k:"M07",s:2018,kolo:2,t:"a3",v:"04:22,39"},
+  {n:"Dinko Srkoč",k:"M07",s:2018,kolo:3,t:"a3",v:"04:23,68"},
+  {n:"Dinko Srkoč",k:"M07",s:2018,kolo:4,t:"a3",v:"03:59,71"},
+  {n:"Borko Prvan",k:"M11",s:2018,kolo:1,t:"a3",v:"03:42,30"},
+  {n:"Borko Prvan",k:"M11",s:2018,kolo:2,t:"a3",v:"03:27,14"},
+  {n:"Borko Prvan",k:"M11",s:2018,kolo:3,t:"a3",v:"03:40,27"},
+  {n:"Jasmin Dizdarević",k:"M09",s:2018,kolo:1,t:"a3",v:"03:30,37"},
+  {n:"Jasmin Dizdarević",k:"M09",s:2018,kolo:2,t:"a3",v:"03:34,52"},
+  {n:"Ranko Defrančeski",k:"M09",s:2018,kolo:1,t:"a3",v:"04:44,58"},
+  {n:"Ranko Defrančeski",k:"M09",s:2018,kolo:2,t:"a3",v:"04:06,77"},
+  {n:"Ivo Petković",k:"M11",s:2018,kolo:1,t:"a3",v:"07:10,11"},
+  // ── 2024 – ŽENE (str. 1-3) ───────────────────────────────
+  // kola: 1=ZPM 22.10.23, 2=Svetice 19.11.23, 3=Utrina 17.12.23, (4=x), 5=Svetice 18.02.24, 6=ZPM 10.03.24, 7=PVC 14.04.24, 8=Utrina 12.05.24, 9=ZPM 09.06.24
+  // Lucija Hađina – 7 nastupa
+  {n:"Lucija Hađina",k:"Ž",s:2024,kolo:1,t:"d",v:"0:37,02"},
+  {n:"Lucija Hađina",k:"Ž",s:2024,kolo:2,t:"p",v:"0:43,14"},
+  {n:"Lucija Hađina",k:"Ž",s:2024,kolo:3,t:"sl",v:"0:33,02"},
+  {n:"Lucija Hađina",k:"Ž",s:2024,kolo:5,t:"sl",v:"0:33,81"},
+  {n:"Lucija Hađina",k:"Ž",s:2024,kolo:6,t:"l",v:"0:38,89"},
+  {n:"Lucija Hađina",k:"Ž",s:2024,kolo:8,t:"SL",v:"2:34,89"},
+  {n:"Lucija Hađina",k:"Ž",s:2024,kolo:9,t:"M",v:"3:02,86"},
+  // Vesna Jakšić – 7
+  {n:"Vesna Jakšić",k:"Ž",s:2024,kolo:1,t:"sl",v:"0:45,49"},
+  {n:"Vesna Jakšić",k:"Ž",s:2024,kolo:3,t:"sl",v:"0:44,78"},
+  {n:"Vesna Jakšić",k:"Ž",s:2024,kolo:5,t:"p",v:"1:06,05"},
+  {n:"Vesna Jakšić",k:"Ž",s:2024,kolo:6,t:"sl",v:"0:49,11"},
+  {n:"Vesna Jakšić",k:"Ž",s:2024,kolo:7,t:"sl",v:"0:49,93"},
+  {n:"Vesna Jakšić",k:"Ž",s:2024,kolo:8,t:"sl",v:"0:47,90"},
+  {n:"Vesna Jakšić",k:"Ž",s:2024,kolo:9,t:"sl",v:"0:48,02"},
+  // Lana Borović – 6
+  {n:"Lana Borović",k:"Ž",s:2024,kolo:1,t:"sl",v:"0:34,62"},
+  {n:"Lana Borović",k:"Ž",s:2024,kolo:2,t:"d",v:"0:39,86"},
+  {n:"Lana Borović",k:"Ž",s:2024,kolo:5,t:"sl",v:"0:33,24"},
+  {n:"Lana Borović",k:"Ž",s:2024,kolo:6,t:"sl",v:"0:33,05"},
+  {n:"Lana Borović",k:"Ž",s:2024,kolo:8,t:"sl",v:"0:32,71"},
+  {n:"Lana Borović",k:"Ž",s:2024,kolo:9,t:"sl",v:"0:32,54"},
+  // Ana Dolinar – 5
+  {n:"Ana Dolinar",k:"Ž",s:2024,kolo:1,t:"sl",v:"1:08,81"},
+  {n:"Ana Dolinar",k:"Ž",s:2024,kolo:2,t:"sl",v:"1:03,24"},
+  {n:"Ana Dolinar",k:"Ž",s:2024,kolo:6,t:"sl",v:"1:11,00"},
+  {n:"Ana Dolinar",k:"Ž",s:2024,kolo:7,t:"sl",v:"1:06,52"},
+  {n:"Ana Dolinar",k:"Ž",s:2024,kolo:8,t:"sl",v:"1:00,74"},
+  // Zrinka Srkoč – 5
+  {n:"Zrinka Srkoč",k:"Ž",s:2024,kolo:1,t:"p",v:"0:52,80"},
+  {n:"Zrinka Srkoč",k:"Ž",s:2024,kolo:5,t:"sl",v:"0:45,02"},
+  {n:"Zrinka Srkoč",k:"Ž",s:2024,kolo:6,t:"sl",v:"0:45,05"},
+  {n:"Zrinka Srkoč",k:"Ž",s:2024,kolo:8,t:"M",v:"3:57,93"},
+  {n:"Zrinka Srkoč",k:"Ž",s:2024,kolo:9,t:"p",v:"0:52,55"},
+  // Viktorija Ivić – 5
+  {n:"Viktorija Ivić",k:"Ž",s:2024,kolo:1,t:"d",v:"0:39,21"},
+  {n:"Viktorija Ivić",k:"Ž",s:2024,kolo:2,t:"sl",v:"0:34,69"},
+  {n:"Viktorija Ivić",k:"Ž",s:2024,kolo:5,t:"sl",v:"0:33,81"},
+  {n:"Viktorija Ivić",k:"Ž",s:2024,kolo:7,t:"sl",v:"0:34,05"},
+  {n:"Viktorija Ivić",k:"Ž",s:2024,kolo:9,t:"d",v:"0:37,97"},
+  // Diana Tomljanović – 5
+  {n:"Diana Tomljanović",k:"Ž",s:2024,kolo:1,t:"sl",v:"0:51,11"},
+  {n:"Diana Tomljanović",k:"Ž",s:2024,kolo:5,t:"sl",v:"0:52,49"},
+  {n:"Diana Tomljanović",k:"Ž",s:2024,kolo:6,t:"sl",v:"0:54,65"},
+  {n:"Diana Tomljanović",k:"Ž",s:2024,kolo:7,t:"sl",v:"0:50,55"},
+  {n:"Diana Tomljanović",k:"Ž",s:2024,kolo:9,t:"p",v:"1:04,95"},
+  // Nika Amančić – 5
+  {n:"Nika Amančić",k:"Ž",s:2024,kolo:1,t:"sl",v:"1:04,95"},
+  {n:"Nika Amančić",k:"Ž",s:2024,kolo:2,t:"sl",v:"0:58,67"},
+  {n:"Nika Amančić",k:"Ž",s:2024,kolo:6,t:"sl",v:"0:57,39"},
+  {n:"Nika Amančić",k:"Ž",s:2024,kolo:8,t:"sl",v:"0:53,74"},
+  {n:"Nika Amančić",k:"Ž",s:2024,kolo:9,t:"sl",v:"0:48,68"},
+  // Mirella Topličanec – 4
+  {n:"Mirella Topličanec",k:"Ž",s:2024,kolo:1,t:"sl",v:"1:02,77"},
+  {n:"Mirella Topličanec",k:"Ž",s:2024,kolo:3,t:"sl",v:"0:58,24"},
+  {n:"Mirella Topličanec",k:"Ž",s:2024,kolo:6,t:"sl",v:"0:54,96"},
+  {n:"Mirella Topličanec",k:"Ž",s:2024,kolo:8,t:"sl",v:"0:52,11"},
+  // Rita Sever – 4
+  {n:"Rita Sever",k:"Ž",s:2024,kolo:5,t:"p",v:"0:59,80"},
+  {n:"Rita Sever",k:"Ž",s:2024,kolo:6,t:"sl",v:"0:46,58"},
+  {n:"Rita Sever",k:"Ž",s:2024,kolo:7,t:"p",v:"0:58,61"},
+  {n:"Rita Sever",k:"Ž",s:2024,kolo:8,t:"d",v:"0:54,81"},
+  // Eva Ivić – 4
+  {n:"Eva Ivić",k:"Ž",s:2024,kolo:2,t:"p",v:"0:58,76"},
+  {n:"Eva Ivić",k:"Ž",s:2024,kolo:5,t:"p",v:"0:59,99"},
+  {n:"Eva Ivić",k:"Ž",s:2024,kolo:7,t:"sl",v:"1:12,58"},
+  {n:"Eva Ivić",k:"Ž",s:2024,kolo:9,t:"sl",v:"0:55,70"},
+  // Marina Platnjak – 4
+  {n:"Marina Platnjak",k:"Ž",s:2024,kolo:3,t:"sl",v:"0:41,99"},
+  {n:"Marina Platnjak",k:"Ž",s:2024,kolo:6,t:"d",v:"0:53,92"},
+  {n:"Marina Platnjak",k:"Ž",s:2024,kolo:7,t:"sl",v:"0:38,68"},
+  {n:"Marina Platnjak",k:"Ž",s:2024,kolo:9,t:"p",v:"0:48,30"},
+  // Nika Bajc – 3
+  {n:"Nika Bajc",k:"Ž",s:2024,kolo:1,t:"d",v:"0:33,89"},
+  {n:"Nika Bajc",k:"Ž",s:2024,kolo:2,t:"sl",v:"0:30,17"},
+  {n:"Nika Bajc",k:"Ž",s:2024,kolo:7,t:"L",v:"2:40,08"},
+  // Gabrijela Stanić – 3
+  {n:"Gabrijela Stanić",k:"Ž",s:2024,kolo:3,t:"sl",v:"1:40,90"},
+  {n:"Gabrijela Stanić",k:"Ž",s:2024,kolo:5,t:"sl",v:"1:31,02"},
+  {n:"Gabrijela Stanić",k:"Ž",s:2024,kolo:6,t:"sl",v:"1:22,02"},
+  // Višnja Petković – 3
+  {n:"Višnja Petković",k:"Ž",s:2024,kolo:2,t:"sl",v:"0:42,89"},
+  {n:"Višnja Petković",k:"Ž",s:2024,kolo:7,t:"sl",v:"0:43,67"},
+  {n:"Višnja Petković",k:"Ž",s:2024,kolo:9,t:"sl",v:"0:40,98"},
+  // Maja Milat – 3
+  {n:"Maja Milat",k:"Ž",s:2024,kolo:7,t:"p",v:"0:48,30"},
+  {n:"Maja Milat",k:"Ž",s:2024,kolo:8,t:"l",v:"0:46,21"},
+  {n:"Maja Milat",k:"Ž",s:2024,kolo:9,t:"p",v:"0:47,64"},
+  // Kristina Cecelja – 2
+  {n:"Kristina Cecelja",k:"Ž",s:2024,kolo:2,t:"sl",v:"0:37,45"},
+  {n:"Kristina Cecelja",k:"Ž",s:2024,kolo:5,t:"sl",v:"0:37,05"},
+  // Jana Markezić – 2
+  {n:"Jana Markezić",k:"Ž",s:2024,kolo:5,t:"l",v:"1:58,78"},
+  {n:"Jana Markezić",k:"Ž",s:2024,kolo:8,t:"l",v:"1:33,11"},
+  // Melita Bogatec Milivojević – 2
+  {n:"Melita Bogatec Milivojević",k:"Ž",s:2024,kolo:3,t:"p",v:"2:06,99"},
+  {n:"Melita Bogatec Milivojević",k:"Ž",s:2024,kolo:8,t:"p",v:"2:26,14"},
+  // Ena Maletić – 2
+  {n:"Ena Maletić",k:"Ž",s:2024,kolo:7,t:"l",v:"1:14,46"},
+  {n:"Ena Maletić",k:"Ž",s:2024,kolo:8,t:"l",v:"1:18,49"},
+  // Gordana Tvrdeić – 2
+  {n:"Gordana Tvrdeić",k:"Ž",s:2024,kolo:6,t:"sl",v:"1:12,24"},
+  {n:"Gordana Tvrdeić",k:"Ž",s:2024,kolo:9,t:"sl",v:"1:06,49"},
+  // Danijela Hajduk – 1
+  {n:"Danijela Hajduk",k:"Ž",s:2024,kolo:1,t:"sl",v:"1:08,58"},
+  // Marijana Amanović – 1
+  {n:"Marijana Amanović",k:"Ž",s:2024,kolo:1,t:"sl",v:"1:06,37"},
+  // Viktorija Kovačević – 1
+  {n:"Viktorija Kovačević",k:"Ž",s:2024,kolo:1,t:"l",v:"0:56,46"},
+  // Diana Bratičević – 1
+  {n:"Diana Bratičević",k:"Ž",s:2024,kolo:1,t:"sl",v:"1:15,58"},
+  // Ana Sršen – 1
+  {n:"Ana Sršen",k:"Ž",s:2024,kolo:2,t:"p",v:"0:51,49"},
+  // Nika Ban Dujmić – 1
+  {n:"Nika Ban Dujmić",k:"Ž",s:2024,kolo:5,t:"sl",v:"0:55,24"},
+  // Margita Antičević – 1
+  {n:"Margita Antičević",k:"Ž",s:2024,kolo:6,t:"SL",v:"3:03,74"},
+  // Petra Omerčević – 1
+  {n:"Petra Omerčević",k:"Ž",s:2024,kolo:6,t:"sl",v:"0:43,99"},
+  // Mirja Pavić – 1
+  {n:"Mirja Pavić",k:"Ž",s:2024,kolo:6,t:"SL",v:"3:05,08"},
+  // Iva Lovrić – 1
+  {n:"Iva Lovrić",k:"Ž",s:2024,kolo:7,t:"sl",v:"0:29,81"},
+  // Srebrenka Fikeys – 1
+  {n:"Srebrenka Fikeys",k:"Ž",s:2024,kolo:7,t:"sl",v:"1:28,24"},
+  // Špela Novak – 1
+  {n:"Špela Novak",k:"Ž",s:2024,kolo:8,t:"D",v:"4:05,78"},
+  // Amairani Guzman – 1
+  {n:"Amairani Guzman",k:"Ž",s:2024,kolo:8,t:"sl",v:"1:07,27"},
+  // Lea Sever – 1
+  {n:"Lea Sever",k:"Ž",s:2024,kolo:8,t:"sl",v:"1:32,18"},
+  // Blaženka Čižmar – 1
+  {n:"Blaženka Čižmar",k:"Ž",s:2024,kolo:9,t:"l",v:"1:11,98"},
+  // Olivera Junaković – 1
+  {n:"Olivera Junaković",k:"Ž",s:2024,kolo:9,t:"sl",v:"1:14,15"},
+  // Jelena Bošković – 1
+  {n:"Jelena Bošković",k:"Ž",s:2024,kolo:9,t:"sl",v:"0:47,95"},
+  // ── 2024 – MUŠKARCI (str. 4-9) ───────────────────────────
+  // Marko Maletić – 8
+  {n:"Marko Maletić",k:"M",s:2024,kolo:1,t:"p",v:"0:35,87"},
+  {n:"Marko Maletić",k:"M",s:2024,kolo:2,t:"d",v:"0:30,21"},
+  {n:"Marko Maletić",k:"M",s:2024,kolo:3,t:"d",v:"0:28,71"},
+  {n:"Marko Maletić",k:"M",s:2024,kolo:5,t:"p",v:"0:35,30"},
+  {n:"Marko Maletić",k:"M",s:2024,kolo:6,t:"l",v:"0:32,39"},
+  {n:"Marko Maletić",k:"M",s:2024,kolo:7,t:"sl",v:"0:27,40"},
+  {n:"Marko Maletić",k:"M",s:2024,kolo:8,t:"d",v:"0:28,27"},
+  {n:"Marko Maletić",k:"M",s:2024,kolo:9,t:"sl",v:"0:27,30"},
+  // Ivo Sabioncello – 8
+  {n:"Ivo Sabioncello",k:"M",s:2024,kolo:1,t:"SL",v:"2:56,83"},
+  {n:"Ivo Sabioncello",k:"M",s:2024,kolo:2,t:"SL",v:"2:57,55"},
+  {n:"Ivo Sabioncello",k:"M",s:2024,kolo:3,t:"SL",v:"2:54,93"},
+  {n:"Ivo Sabioncello",k:"M",s:2024,kolo:5,t:"SL",v:"2:57,21"},
+  {n:"Ivo Sabioncello",k:"M",s:2024,kolo:6,t:"SL",v:"2:55,99"},
+  {n:"Ivo Sabioncello",k:"M",s:2024,kolo:7,t:"SL",v:"2:53,34"},
+  {n:"Ivo Sabioncello",k:"M",s:2024,kolo:8,t:"SL",v:"3:00,39"},
+  {n:"Ivo Sabioncello",k:"M",s:2024,kolo:9,t:"SL",v:"2:55,17"},
+  // Dinko Srkoč – 8
+  {n:"Dinko Srkoč",k:"M",s:2024,kolo:1,t:"d",v:"0:39,86"},
+  {n:"Dinko Srkoč",k:"M",s:2024,kolo:2,t:"p",v:"0:43,27"},
+  {n:"Dinko Srkoč",k:"M",s:2024,kolo:3,t:"sl",v:"0:33,70"},
+  {n:"Dinko Srkoč",k:"M",s:2024,kolo:5,t:"sl",v:"0:33,49"},
+  {n:"Dinko Srkoč",k:"M",s:2024,kolo:6,t:"l",v:"0:41,52"},
+  {n:"Dinko Srkoč",k:"M",s:2024,kolo:7,t:"M",v:"3:15,46"},
+  {n:"Dinko Srkoč",k:"M",s:2024,kolo:8,t:"sl",v:"0:33,71"},
+  {n:"Dinko Srkoč",k:"M",s:2024,kolo:9,t:"sl",v:"0:33,96"},
+  // Vjeran Malenica – 8
+  {n:"Vjeran Malenica",k:"M",s:2024,kolo:1,t:"SL",v:"3:03,21"},
+  {n:"Vjeran Malenica",k:"M",s:2024,kolo:2,t:"SL",v:"2:54,27"},
+  {n:"Vjeran Malenica",k:"M",s:2024,kolo:3,t:"SL",v:"2:56,95"},
+  {n:"Vjeran Malenica",k:"M",s:2024,kolo:5,t:"SL",v:"3:01,21"},
+  {n:"Vjeran Malenica",k:"M",s:2024,kolo:6,t:"SL",v:"3:03,21"},
+  {n:"Vjeran Malenica",k:"M",s:2024,kolo:7,t:"SL",v:"3:05,33"},
+  {n:"Vjeran Malenica",k:"M",s:2024,kolo:8,t:"SL",v:"3:04,49"},
+  {n:"Vjeran Malenica",k:"M",s:2024,kolo:9,t:"SL",v:"3:11,90"},
+  // Daniel Markić – 7
+  {n:"Daniel Markić",k:"M",s:2024,kolo:1,t:"d",v:"0:31,10"},
+  {n:"Daniel Markić",k:"M",s:2024,kolo:2,t:"d",v:"0:31,15"},
+  {n:"Daniel Markić",k:"M",s:2024,kolo:3,t:"sl",v:"0:27,89"},
+  {n:"Daniel Markić",k:"M",s:2024,kolo:5,t:"sl",v:"0:28,95"},
+  {n:"Daniel Markić",k:"M",s:2024,kolo:6,t:"sl",v:"0:28,37"},
+  {n:"Daniel Markić",k:"M",s:2024,kolo:7,t:"sl",v:"0:28,21"},
+  {n:"Daniel Markić",k:"M",s:2024,kolo:8,t:"sl",v:"0:27,80"},
+  // Dražen Vassung – 7
+  {n:"Dražen Vassung",k:"M",s:2024,kolo:1,t:"d",v:"0:37,78"},
+  {n:"Dražen Vassung",k:"M",s:2024,kolo:2,t:"p",v:"0:46,96"},
+  {n:"Dražen Vassung",k:"M",s:2024,kolo:3,t:"sl",v:"0:33,77"},
+  {n:"Dražen Vassung",k:"M",s:2024,kolo:5,t:"sl",v:"0:33,74"},
+  {n:"Dražen Vassung",k:"M",s:2024,kolo:6,t:"M",v:"3:26,08"},
+  {n:"Dražen Vassung",k:"M",s:2024,kolo:8,t:"sl",v:"0:34,36"},
+  {n:"Dražen Vassung",k:"M",s:2024,kolo:9,t:"sl",v:"0:33,92"},
+  // Vedran Čoti – 7
+  {n:"Vedran Čoti",k:"M",s:2024,kolo:1,t:"p",v:"0:45,21"},
+  {n:"Vedran Čoti",k:"M",s:2024,kolo:2,t:"p",v:"0:46,71"},
+  {n:"Vedran Čoti",k:"M",s:2024,kolo:3,t:"p",v:"0:45,40"},
+  {n:"Vedran Čoti",k:"M",s:2024,kolo:5,t:"p",v:"0:45,89"},
+  {n:"Vedran Čoti",k:"M",s:2024,kolo:6,t:"p",v:"0:45,10"},
+  {n:"Vedran Čoti",k:"M",s:2024,kolo:7,t:"p",v:"0:44,74"},
+  {n:"Vedran Čoti",k:"M",s:2024,kolo:8,t:"p",v:"0:45,74"},
+  // Zenon Pavić – 7
+  {n:"Zenon Pavić",k:"M",s:2024,kolo:1,t:"sl",v:"0:31,08"},
+  {n:"Zenon Pavić",k:"M",s:2024,kolo:2,t:"sl",v:"0:31,65"},
+  {n:"Zenon Pavić",k:"M",s:2024,kolo:3,t:"sl",v:"0:30,96"},
+  {n:"Zenon Pavić",k:"M",s:2024,kolo:5,t:"sl",v:"0:31,46"},
+  {n:"Zenon Pavić",k:"M",s:2024,kolo:6,t:"sl",v:"0:30,70"},
+  {n:"Zenon Pavić",k:"M",s:2024,kolo:8,t:"SL",v:"2:42,21"},
+  {n:"Zenon Pavić",k:"M",s:2024,kolo:9,t:"SL",v:"2:38,13"},
+  // Martin Balić – 7
+  {n:"Martin Balić",k:"M",s:2024,kolo:1,t:"SL",v:"2:28,43"},
+  {n:"Martin Balić",k:"M",s:2024,kolo:2,t:"SL",v:"2:26,14"},
+  {n:"Martin Balić",k:"M",s:2024,kolo:3,t:"SL",v:"2:23,18"},
+  {n:"Martin Balić",k:"M",s:2024,kolo:5,t:"SL",v:"2:27,27"},
+  {n:"Martin Balić",k:"M",s:2024,kolo:7,t:"sl",v:"0:29,17"},
+  {n:"Martin Balić",k:"M",s:2024,kolo:8,t:"SL",v:"2:24,05"},
+  {n:"Martin Balić",k:"M",s:2024,kolo:9,t:"SL",v:"2:23,74"},
+  // Borko Prvan – 7
+  {n:"Borko Prvan",k:"M",s:2024,kolo:1,t:"SL",v:"2:56,74"},
+  {n:"Borko Prvan",k:"M",s:2024,kolo:2,t:"SL",v:"2:56,95"},
+  {n:"Borko Prvan",k:"M",s:2024,kolo:5,t:"SL",v:"2:59,05"},
+  {n:"Borko Prvan",k:"M",s:2024,kolo:6,t:"SL",v:"2:54,96"},
+  {n:"Borko Prvan",k:"M",s:2024,kolo:7,t:"SL",v:"2:55,24"},
+  {n:"Borko Prvan",k:"M",s:2024,kolo:8,t:"SL",v:"2:57,24"},
+  {n:"Borko Prvan",k:"M",s:2024,kolo:9,t:"SL",v:"2:56,51"},
+  // Hrvoje Carić – 7
+  {n:"Hrvoje Carić",k:"M",s:2024,kolo:1,t:"sl",v:"0:33,58"},
+  {n:"Hrvoje Carić",k:"M",s:2024,kolo:2,t:"sl",v:"0:34,27"},
+  {n:"Hrvoje Carić",k:"M",s:2024,kolo:3,t:"sl",v:"0:33,65"},
+  {n:"Hrvoje Carić",k:"M",s:2024,kolo:5,t:"sl",v:"0:34,99"},
+  {n:"Hrvoje Carić",k:"M",s:2024,kolo:6,t:"sl",v:"0:33,37"},
+  {n:"Hrvoje Carić",k:"M",s:2024,kolo:8,t:"sl",v:"0:31,58"},
+  {n:"Hrvoje Carić",k:"M",s:2024,kolo:9,t:"sl",v:"0:32,54"},
+  // Željko Dugić – 7
+  {n:"Željko Dugić",k:"M",s:2024,kolo:1,t:"SL",v:"2:55,08"},
+  {n:"Željko Dugić",k:"M",s:2024,kolo:2,t:"SL",v:"3:00,14"},
+  {n:"Željko Dugić",k:"M",s:2024,kolo:3,t:"SL",v:"2:56,14"},
+  {n:"Željko Dugić",k:"M",s:2024,kolo:5,t:"SL",v:"2:57,99"},
+  {n:"Željko Dugić",k:"M",s:2024,kolo:6,t:"SL",v:"2:56,77"},
+  {n:"Željko Dugić",k:"M",s:2024,kolo:8,t:"SL",v:"3:00,52"},
+  {n:"Željko Dugić",k:"M",s:2024,kolo:9,t:"SL",v:"2:56,46"},
+  // Boris Igrec – 7
+  {n:"Boris Igrec",k:"M",s:2024,kolo:1,t:"SL",v:"3:10,71"},
+  {n:"Boris Igrec",k:"M",s:2024,kolo:2,t:"SL",v:"3:08,49"},
+  {n:"Boris Igrec",k:"M",s:2024,kolo:3,t:"SL",v:"3:03,08"},
+  {n:"Boris Igrec",k:"M",s:2024,kolo:5,t:"SL",v:"2:59,05"},
+  {n:"Boris Igrec",k:"M",s:2024,kolo:6,t:"SL",v:"2:56,99"},
+  {n:"Boris Igrec",k:"M",s:2024,kolo:7,t:"SL",v:"2:55,89"},
+  {n:"Boris Igrec",k:"M",s:2024,kolo:9,t:"SL",v:"3:03,14"},
+  // Ante Orlović – 7
+  {n:"Ante Orlović",k:"M",s:2024,kolo:2,t:"sl",v:"0:27,58"},
+  {n:"Ante Orlović",k:"M",s:2024,kolo:3,t:"p",v:"0:35,77"},
+  {n:"Ante Orlović",k:"M",s:2024,kolo:5,t:"SL",v:"2:22,49"},
+  {n:"Ante Orlović",k:"M",s:2024,kolo:6,t:"M",v:"2:37,93"},
+  {n:"Ante Orlović",k:"M",s:2024,kolo:7,t:"l",v:"0:30,83"},
+  {n:"Ante Orlović",k:"M",s:2024,kolo:8,t:"l",v:"0:30,46"},
+  {n:"Ante Orlović",k:"M",s:2024,kolo:9,t:"M",v:"2:29,18"},
+  // Danko Dolinar – 6
+  {n:"Danko Dolinar",k:"M",s:2024,kolo:1,t:"sl",v:"0:37,55"},
+  {n:"Danko Dolinar",k:"M",s:2024,kolo:2,t:"sl",v:"0:36,77"},
+  {n:"Danko Dolinar",k:"M",s:2024,kolo:3,t:"sl",v:"0:37,84"},
+  {n:"Danko Dolinar",k:"M",s:2024,kolo:6,t:"sl",v:"0:37,39"},
+  {n:"Danko Dolinar",k:"M",s:2024,kolo:7,t:"sl",v:"0:36,64"},
+  {n:"Danko Dolinar",k:"M",s:2024,kolo:8,t:"sl",v:"0:36,58"},
+  // Ranko Defrančeski – 6
+  {n:"Ranko Defrančeski",k:"M",s:2024,kolo:1,t:"sl",v:"0:40,74"},
+  {n:"Ranko Defrančeski",k:"M",s:2024,kolo:2,t:"sl",v:"0:39,84"},
+  {n:"Ranko Defrančeski",k:"M",s:2024,kolo:3,t:"SL",v:"3:15,87"},
+  {n:"Ranko Defrančeski",k:"M",s:2024,kolo:5,t:"SL",v:"3:09,42"},
+  {n:"Ranko Defrančeski",k:"M",s:2024,kolo:6,t:"SL",v:"3:20,05"},
+  {n:"Ranko Defrančeski",k:"M",s:2024,kolo:8,t:"sl",v:"0:39,87"},
+  // Domagoj Dolinar – 6
+  {n:"Domagoj Dolinar",k:"M",s:2024,kolo:1,t:"p",v:"1:02,43"},
+  {n:"Domagoj Dolinar",k:"M",s:2024,kolo:2,t:"p",v:"1:01,86"},
+  {n:"Domagoj Dolinar",k:"M",s:2024,kolo:3,t:"sl",v:"0:55,92"},
+  {n:"Domagoj Dolinar",k:"M",s:2024,kolo:6,t:"sl",v:"1:00,92"},
+  {n:"Domagoj Dolinar",k:"M",s:2024,kolo:7,t:"sl",v:"0:53,90"},
+  {n:"Domagoj Dolinar",k:"M",s:2024,kolo:8,t:"sl",v:"0:51,92"},
+  // Vedran Hudec – 6
+  {n:"Vedran Hudec",k:"M",s:2024,kolo:1,t:"SL",v:"2:39,42"},
+  {n:"Vedran Hudec",k:"M",s:2024,kolo:2,t:"sl",v:"0:32,93"},
+  {n:"Vedran Hudec",k:"M",s:2024,kolo:3,t:"L",v:"2:54,62"},
+  {n:"Vedran Hudec",k:"M",s:2024,kolo:5,t:"M",v:"2:58,39"},
+  {n:"Vedran Hudec",k:"M",s:2024,kolo:6,t:"SL",v:"2:38,52"},
+  {n:"Vedran Hudec",k:"M",s:2024,kolo:9,t:"sl",v:"0:31,81"},
+  // Darko Kuzle – 6
+  {n:"Darko Kuzle",k:"M",s:2024,kolo:1,t:"sl",v:"0:57,61"},
+  {n:"Darko Kuzle",k:"M",s:2024,kolo:3,t:"sl",v:"0:56,55"},
+  {n:"Darko Kuzle",k:"M",s:2024,kolo:5,t:"sl",v:"0:56,84"},
+  {n:"Darko Kuzle",k:"M",s:2024,kolo:6,t:"sl",v:"0:55,70"},
+  {n:"Darko Kuzle",k:"M",s:2024,kolo:8,t:"sl",v:"0:52,36"},
+  {n:"Darko Kuzle",k:"M",s:2024,kolo:9,t:"sl",v:"0:52,89"},
+  // Zdravko Kolarić – 6
+  {n:"Zdravko Kolarić",k:"M",s:2024,kolo:1,t:"sl",v:"1:12,87"},
+  {n:"Zdravko Kolarić",k:"M",s:2024,kolo:2,t:"sl",v:"1:13,96"},
+  {n:"Zdravko Kolarić",k:"M",s:2024,kolo:3,t:"sl",v:"1:10,65"},
+  {n:"Zdravko Kolarić",k:"M",s:2024,kolo:6,t:"sl",v:"1:17,36"},
+  {n:"Zdravko Kolarić",k:"M",s:2024,kolo:8,t:"sl",v:"1:09,70"},
+  {n:"Zdravko Kolarić",k:"M",s:2024,kolo:9,t:"sl",v:"1:04,95"},
+  // Ivan Gabriš – 6
+  {n:"Ivan Gabriš",k:"M",s:2024,kolo:2,t:"d",v:"0:32,11"},
+  {n:"Ivan Gabriš",k:"M",s:2024,kolo:3,t:"d",v:"0:30,87"},
+  {n:"Ivan Gabriš",k:"M",s:2024,kolo:6,t:"l",v:"0:32,39"},
+  {n:"Ivan Gabriš",k:"M",s:2024,kolo:7,t:"d",v:"0:30,58"},
+  {n:"Ivan Gabriš",k:"M",s:2024,kolo:8,t:"d",v:"0:30,64"},
+  {n:"Ivan Gabriš",k:"M",s:2024,kolo:9,t:"d",v:"0:30,89"},
+  // Stjepan Jakovac – 6
+  {n:"Stjepan Jakovac",k:"M",s:2024,kolo:2,t:"SL",v:"2:28,87"},
+  {n:"Stjepan Jakovac",k:"M",s:2024,kolo:3,t:"SL",v:"2:31,18"},
+  {n:"Stjepan Jakovac",k:"M",s:2024,kolo:5,t:"SL",v:"2:30,14"},
+  {n:"Stjepan Jakovac",k:"M",s:2024,kolo:6,t:"SL",v:"2:31,02"},
+  {n:"Stjepan Jakovac",k:"M",s:2024,kolo:7,t:"SL",v:"2:31,95"},
+  {n:"Stjepan Jakovac",k:"M",s:2024,kolo:9,t:"SL",v:"2:33,28"},
+  // Bruno Škacan – 6
+  {n:"Bruno Škacan",k:"M",s:2024,kolo:2,t:"sl",v:"0:42,11"},
+  {n:"Bruno Škacan",k:"M",s:2024,kolo:3,t:"sl",v:"0:41,42"},
+  {n:"Bruno Škacan",k:"M",s:2024,kolo:5,t:"sl",v:"0:44,17"},
+  {n:"Bruno Škacan",k:"M",s:2024,kolo:6,t:"sl",v:"0:44,81"},
+  {n:"Bruno Škacan",k:"M",s:2024,kolo:8,t:"sl",v:"0:41,84"},
+  {n:"Bruno Škacan",k:"M",s:2024,kolo:9,t:"sl",v:"0:42,74"},
+  // Damir Dolinar – 5
+  {n:"Damir Dolinar",k:"M",s:2024,kolo:1,t:"sl",v:"0:44,36"},
+  {n:"Damir Dolinar",k:"M",s:2024,kolo:3,t:"sl",v:"0:42,05"},
+  {n:"Damir Dolinar",k:"M",s:2024,kolo:6,t:"sl",v:"0:40,08"},
+  {n:"Damir Dolinar",k:"M",s:2024,kolo:7,t:"sl",v:"0:39,34"},
+  {n:"Damir Dolinar",k:"M",s:2024,kolo:8,t:"sl",v:"0:38,80"},
+  // Dario Milić – 5
+  {n:"Dario Milić",k:"M",s:2024,kolo:1,t:"SL",v:"3:06,83"},
+  {n:"Dario Milić",k:"M",s:2024,kolo:2,t:"SL",v:"3:09,58"},
+  {n:"Dario Milić",k:"M",s:2024,kolo:5,t:"sl",v:"0:36,55"},
+  {n:"Dario Milić",k:"M",s:2024,kolo:6,t:"l",v:"0:44,88"},
+  {n:"Dario Milić",k:"M",s:2024,kolo:9,t:"SL",v:"3:14,40"},
+  // Ivo Petković – 5
+  {n:"Ivo Petković",k:"M",s:2024,kolo:2,t:"sl",v:"1:03,49"},
+  {n:"Ivo Petković",k:"M",s:2024,kolo:3,t:"sl",v:"1:01,78"},
+  {n:"Ivo Petković",k:"M",s:2024,kolo:5,t:"sl",v:"0:55,93"},
+  {n:"Ivo Petković",k:"M",s:2024,kolo:6,t:"sl",v:"0:57,61"},
+  {n:"Ivo Petković",k:"M",s:2024,kolo:9,t:"sl",v:"1:00,08"},
+  // Goran Marović – 4
+  {n:"Goran Marović",k:"M",s:2024,kolo:1,t:"sl",v:"0:35,55"},
+  {n:"Goran Marović",k:"M",s:2024,kolo:3,t:"sl",v:"0:37,64"},
+  {n:"Goran Marović",k:"M",s:2024,kolo:5,t:"sl",v:"0:36,14"},
+  {n:"Goran Marović",k:"M",s:2024,kolo:6,t:"sl",v:"0:36,42"},
+  // Predrag Šarec – 4
+  {n:"Predrag Šarec",k:"M",s:2024,kolo:1,t:"sl",v:"0:40,08"},
+  {n:"Predrag Šarec",k:"M",s:2024,kolo:3,t:"sl",v:"0:44,93"},
+  {n:"Predrag Šarec",k:"M",s:2024,kolo:7,t:"sl",v:"0:41,62"},
+  {n:"Predrag Šarec",k:"M",s:2024,kolo:9,t:"sl",v:"0:41,99"},
+  // Ratko Rusak – 4
+  {n:"Ratko Rusak",k:"M",s:2024,kolo:1,t:"sl",v:"0:43,39"},
+  {n:"Ratko Rusak",k:"M",s:2024,kolo:2,t:"sl",v:"0:42,49"},
+  {n:"Ratko Rusak",k:"M",s:2024,kolo:3,t:"sl",v:"0:43,95"},
+  {n:"Ratko Rusak",k:"M",s:2024,kolo:8,t:"sl",v:"0:42,74"},
+  // Ribafish – 4
+  {n:"Ribafish",k:"M",s:2024,kolo:2,t:"sl",v:"0:33,58"},
+  {n:"Ribafish",k:"M",s:2024,kolo:5,t:"sl",v:"0:32,27"},
+  {n:"Ribafish",k:"M",s:2024,kolo:6,t:"sl",v:"0:34,45"},
+  {n:"Ribafish",k:"M",s:2024,kolo:7,t:"sl",v:"0:32,77"},
+  // Filip Manojlovski – 4
+  {n:"Filip Manojlovski",k:"M",s:2024,kolo:2,t:"sl",v:"0:33,05"},
+  {n:"Filip Manojlovski",k:"M",s:2024,kolo:5,t:"sl",v:"0:30,86"},
+  {n:"Filip Manojlovski",k:"M",s:2024,kolo:6,t:"sl",v:"0:30,46"},
+  {n:"Filip Manojlovski",k:"M",s:2024,kolo:7,t:"sl",v:"0:30,02"},
+  // Jasmin Dizdarević – 4
+  {n:"Jasmin Dizdarević",k:"M",s:2024,kolo:2,t:"sl",v:"0:37,11"},
+  {n:"Jasmin Dizdarević",k:"M",s:2024,kolo:3,t:"sl",v:"0:36,68"},
+  {n:"Jasmin Dizdarević",k:"M",s:2024,kolo:5,t:"sl",v:"0:36,17"},
+  {n:"Jasmin Dizdarević",k:"M",s:2024,kolo:9,t:"sl",v:"0:35,81"},
+  // Vitomir Sever – 4
+  {n:"Vitomir Sever",k:"M",s:2024,kolo:5,t:"sl",v:"0:40,70"},
+  {n:"Vitomir Sever",k:"M",s:2024,kolo:6,t:"p",v:"0:45,21"},
+  {n:"Vitomir Sever",k:"M",s:2024,kolo:7,t:"sl",v:"0:40,70"},
+  {n:"Vitomir Sever",k:"M",s:2024,kolo:8,t:"sl",v:"0:39,49"},
+  // Stjepan Markezić – 4
+  {n:"Stjepan Markezić",k:"M",s:2024,kolo:3,t:"sl",v:"0:37,65"},
+  {n:"Stjepan Markezić",k:"M",s:2024,kolo:5,t:"sl",v:"0:41,27"},
+  {n:"Stjepan Markezić",k:"M",s:2024,kolo:8,t:"sl",v:"0:38,30"},
+  {n:"Stjepan Markezić",k:"M",s:2024,kolo:9,t:"sl",v:"0:38,14"},
+  // Goran Hudec – 4
+  {n:"Goran Hudec",k:"M",s:2024,kolo:5,t:"d",v:"1:38,21"},
+  {n:"Goran Hudec",k:"M",s:2024,kolo:6,t:"sl",v:"1:26,70"},
+  {n:"Goran Hudec",k:"M",s:2024,kolo:7,t:"d",v:"1:37,49"},
+  {n:"Goran Hudec",k:"M",s:2024,kolo:9,t:"d",v:"1:36,21"},
+  // Tomislav Carić – 3
+  {n:"Tomislav Carić",k:"M",s:2024,kolo:1,t:"sl",v:"0:40,87"},
+  {n:"Tomislav Carić",k:"M",s:2024,kolo:3,t:"sl",v:"0:39,39"},
+  {n:"Tomislav Carić",k:"M",s:2024,kolo:7,t:"sl",v:"0:42,08"},
+  // Tadej Sukič – 3
+  {n:"Tadej Sukič",k:"M",s:2024,kolo:1,t:"p",v:"0:50,33"},
+  {n:"Tadej Sukič",k:"M",s:2024,kolo:2,t:"sl",v:"0:45,64"},
+  {n:"Tadej Sukič",k:"M",s:2024,kolo:7,t:"p",v:"0:48,46"},
+  // Mario Kurtanjek – 3
+  {n:"Mario Kurtanjek",k:"M",s:2024,kolo:2,t:"sl",v:"0:33,18"},
+  {n:"Mario Kurtanjek",k:"M",s:2024,kolo:5,t:"sl",v:"0:33,14"},
+  {n:"Mario Kurtanjek",k:"M",s:2024,kolo:6,t:"sl",v:"0:33,64"},
+  // Danijel Raković – 3
+  {n:"Danijel Raković",k:"M",s:2024,kolo:5,t:"sl",v:"0:31,11"},
+  {n:"Danijel Raković",k:"M",s:2024,kolo:6,t:"sl",v:"0:30,11"},
+  {n:"Danijel Raković",k:"M",s:2024,kolo:7,t:"sl",v:"0:30,27"},
+  // Tihomir Fabeta – 3
+  {n:"Tihomir Fabeta",k:"M",s:2024,kolo:3,t:"sl",v:"0:33,05"},
+  {n:"Tihomir Fabeta",k:"M",s:2024,kolo:6,t:"sl",v:"0:33,39"},
+  {n:"Tihomir Fabeta",k:"M",s:2024,kolo:7,t:"sl",v:"0:33,37"},
+  // Zdenko Pećnik – 3
+  {n:"Zdenko Pećnik",k:"M",s:2024,kolo:1,t:"sl",v:"0:46,42"},
+  {n:"Zdenko Pećnik",k:"M",s:2024,kolo:6,t:"sl",v:"0:45,44"},
+  {n:"Zdenko Pećnik",k:"M",s:2024,kolo:9,t:"sl",v:"0:46,92"},
+  // Ognjen Škunca – 3
+  {n:"Ognjen Škunca",k:"M",s:2024,kolo:5,t:"sl",v:"0:37,36"},
+  {n:"Ognjen Škunca",k:"M",s:2024,kolo:6,t:"sl",v:"0:37,21"},
+  {n:"Ognjen Škunca",k:"M",s:2024,kolo:9,t:"sl",v:"0:35,98"},
+  // Mladen Maršanić – 3
+  {n:"Mladen Maršanić",k:"M",s:2024,kolo:3,t:"sl",v:"0:53,27"},
+  {n:"Mladen Maršanić",k:"M",s:2024,kolo:6,t:"sl",v:"0:52,33"},
+  {n:"Mladen Maršanić",k:"M",s:2024,kolo:9,t:"sl",v:"0:52,67"},
+  // Berislav Biočić – 3
+  {n:"Berislav Biočić",k:"M",s:2024,kolo:6,t:"sl",v:"0:31,02"},
+  {n:"Berislav Biočić",k:"M",s:2024,kolo:8,t:"sl",v:"0:31,55"},
+  {n:"Berislav Biočić",k:"M",s:2024,kolo:9,t:"sl",v:"0:31,08"},
+  // Marko Brković – 3
+  {n:"Marko Brković",k:"M",s:2024,kolo:7,t:"sl",v:"0:29,02"},
+  {n:"Marko Brković",k:"M",s:2024,kolo:8,t:"sl",v:"0:29,74"},
+  {n:"Marko Brković",k:"M",s:2024,kolo:9,t:"sl",v:"0:29,43"},
+  // Mario Matić – 3
+  {n:"Mario Matić",k:"M",s:2024,kolo:7,t:"sl",v:"0:34,77"},
+  {n:"Mario Matić",k:"M",s:2024,kolo:8,t:"d",v:"0:36,68"},
+  {n:"Mario Matić",k:"M",s:2024,kolo:9,t:"sl",v:"0:31,73"},
+  // double M 2024
+  {n:"Domagoj Vujnović",k:"M",s:2024,kolo:1,t:"sl",v:"0:30,36"},{n:"Domagoj Vujnović",k:"M",s:2024,kolo:2,t:"sl",v:"0:28,78"},
+  {n:"Krešimir Štark",k:"M",s:2024,kolo:1,t:"sl",v:"0:37,81"},{n:"Krešimir Štark",k:"M",s:2024,kolo:2,t:"p",v:"0:48,27"},
+  {n:"Slaven Šormaz",k:"M",s:2024,kolo:5,t:"sl",v:"0:30,78"},{n:"Slaven Šormaz",k:"M",s:2024,kolo:6,t:"sl",v:"0:31,02"},
+  {n:"Goran Kuljiš",k:"M",s:2024,kolo:5,t:"sl",v:"0:33,62"},{n:"Goran Kuljiš",k:"M",s:2024,kolo:6,t:"sl",v:"0:32,74"},
+  {n:"Hrvoje Ivičević",k:"M",s:2024,kolo:5,t:"sl",v:"0:42,27"},{n:"Hrvoje Ivičević",k:"M",s:2024,kolo:8,t:"sl",v:"0:36,49"},
+  {n:"Matej Raković",k:"M",s:2024,kolo:5,t:"sl",v:"2:18,71"},{n:"Matej Raković",k:"M",s:2024,kolo:7,t:"sl",v:"1:56,46"},
+  {n:"Rade Dubreta",k:"M",s:2024,kolo:6,t:"sl",v:"0:30,55"},{n:"Rade Dubreta",k:"M",s:2024,kolo:8,t:"sl",v:"0:30,18"},
+  {n:"Jan Kraus",k:"M",s:2024,kolo:3,t:"sl",v:"1:10,95"},{n:"Jan Kraus",k:"M",s:2024,kolo:8,t:"sl",v:"1:18,99"},
+  {n:"Filip Piškulić",k:"M",s:2024,kolo:3,t:"SL",v:"2:17,64"},{n:"Filip Piškulić",k:"M",s:2024,kolo:7,t:"SL",v:"2:18,30"},
+  {n:"Boris Korbar",k:"M",s:2024,kolo:3,t:"SL",v:"3:05,77"},{n:"Boris Korbar",k:"M",s:2024,kolo:8,t:"SL",v:"3:02,26"},
+  {n:"Luka Gabriš",k:"M",s:2024,kolo:7,t:"P",v:"2:48,11"},{n:"Luka Gabriš",k:"M",s:2024,kolo:8,t:"d",v:"0:29,61"},
+  {n:"Stjepan Žagar",k:"M",s:2024,kolo:6,t:"sl",v:"0:46,02"},{n:"Stjepan Žagar",k:"M",s:2024,kolo:9,t:"sl",v:"0:46,52"},
+  // single M 2024
+  {n:"Ivan Turčinović",k:"M",s:2024,kolo:1,t:"SL",v:"2:37,05"},
+  {n:"Miran Hrđok",k:"M",s:2024,kolo:1,t:"sl",v:"0:31,78"},
+  {n:"Marin Čalušić",k:"M",s:2024,kolo:1,t:"sl",v:"0:35,24"},
+  {n:"Nal Bajc",k:"M",s:2024,kolo:1,t:"sl",v:"0:47,27"},
+  {n:"Roko Carić",k:"M",s:2024,kolo:1,t:"sl",v:"0:42,83"},
+  {n:"Franc Čargo",k:"M",s:2024,kolo:2,t:"sl",v:"0:39,77"},
+  {n:"Roman Baranja",k:"M",s:2024,kolo:2,t:"sl",v:"0:40,17"},
+  {n:"Petar Jurač",k:"M",s:2024,kolo:2,t:"sl",v:"0:43,05"},
+  {n:"Mate Janković",k:"M",s:2024,kolo:5,t:"sl",v:"0:31,39"},
+  {n:"Tomislav Holjevac",k:"M",s:2024,kolo:5,t:"sl",v:"0:43,74"},
+  {n:"Ivica Vrabec",k:"M",s:2024,kolo:5,t:"l",v:"1:15,21"},
+  {n:"Petar Kurtanjek",k:"M",s:2024,kolo:6,t:"sl",v:"0:42,30"},
+  {n:"Josip Malenica",k:"M",s:2024,kolo:3,t:"sl",v:"0:52,39"},
+  {n:"Tihomir Mikinac",k:"M",s:2024,kolo:3,t:"SL",v:"3:35,11"},
+  {n:"Ivan Sokolić",k:"M",s:2024,kolo:7,t:"sl",v:"0:31,11"},
+  {n:"Matko Josipović",k:"M",s:2024,kolo:8,t:"M",v:"4:17,49"},
+  {n:"Vlado Pilipović",k:"M",s:2024,kolo:9,t:"SL",v:"2:21,85"},
+  {n:"Goran Mudrinić",k:"M",s:2024,kolo:9,t:"SL",v:"2:35,18"},
+  // ── 2024 – Mini Aqua3atlon (mAq3) ────────────────────────
+  {n:"Borko Prvan",k:"M",s:2024,kolo:1,t:"mAq3",v:"3:57,27"},
+  {n:"Borko Prvan",k:"M",s:2024,kolo:2,t:"mAq3",v:"4:08,00"},
+  {n:"Borko Prvan",k:"M",s:2024,kolo:5,t:"mAq3",v:"4:08,99"},
+  {n:"Borko Prvan",k:"M",s:2024,kolo:6,t:"mAq3",v:"3:54,89"},
+  {n:"Borko Prvan",k:"M",s:2024,kolo:7,t:"mAq3",v:"4:00,45"},
+  {n:"Borko Prvan",k:"M",s:2024,kolo:8,t:"mAq3",v:"4:17,02"},
+  {n:"Borko Prvan",k:"M",s:2024,kolo:9,t:"mAq3",v:"4:04,89"},
+  {n:"Boris Igrec",k:"M",s:2024,kolo:6,t:"mAq3",v:"4:46,87"},
+  {n:"Boris Igrec",k:"M",s:2024,kolo:7,t:"mAq3",v:"4:32,58"},
+  {n:"Jasmin Dizdarević",k:"M",s:2024,kolo:2,t:"mAq3",v:"3:49,81"},
+  {n:"Jasmin Dizdarević",k:"M",s:2024,kolo:3,t:"mAq3",v:"4:00,27"},
+  {n:"Jasmin Dizdarević",k:"M",s:2024,kolo:5,t:"mAq3",v:"4:17,52"},
+  {n:"Nika Bajc",k:"Ž",s:2024,kolo:2,t:"mAq3",v:"3:29,36"},
+  {n:"Nika Bajc",k:"Ž",s:2024,kolo:7,t:"mAq3",v:"3:26,08"},
+  {n:"Nal Bajc",k:"M",s:2024,kolo:1,t:"mAq3",v:"4:28,64"},
+  {n:"Žan Bajc",k:"M",s:2024,kolo:1,t:"mAq3",v:"8:06,08"},
+  {n:"Špela Movak",k:"Ž",s:2024,kolo:8,t:"mAq3",v:"5:03,08"},
+  {n:"Matko Josipović",k:"M",s:2024,kolo:8,t:"mAq3",v:"5:46,55"},
+  // ── 2025 – MUŠKARCI (str. 1-4, redni br. 1-73) ───────────
+  // kola: 1=ZPM 20.10.24, 2=Svetice 17.11.24, 3=Utrina 15.12.24, 4=PVC 19.01.25, 5=Svetice 09.02.25, 6=ZPM 09.03.25, 7=PVC 06.04.25, 8=Utrina 04.05.25, 9=ZPM 08.06.25
+  // 1. Stjepan Jakovac – 9 nastupa
+  {n:"Stjepan Jakovac",k:"M",s:2025,kolo:1,t:"SL",v:"2:31,39"},
+  {n:"Stjepan Jakovac",k:"M",s:2025,kolo:2,t:"sl",v:"0:30,89"},
+  {n:"Stjepan Jakovac",k:"M",s:2025,kolo:3,t:"p",v:"0:41,18"},
+  {n:"Stjepan Jakovac",k:"M",s:2025,kolo:4,t:"P",v:"3:17,96"},
+  {n:"Stjepan Jakovac",k:"M",s:2025,kolo:5,t:"l",v:"0:43,02"},
+  {n:"Stjepan Jakovac",k:"M",s:2025,kolo:6,t:"L",v:"3:21,83"},
+  {n:"Stjepan Jakovac",k:"M",s:2025,kolo:7,t:"d",v:"0:36,14"},
+  {n:"Stjepan Jakovac",k:"M",s:2025,kolo:8,t:"M",v:"2:56,81"},
+  {n:"Stjepan Jakovac",k:"M",s:2025,kolo:9,t:"D",v:"3:23,34"},
+  // 2. Dinko Srkoč – 9
+  {n:"Dinko Srkoč",k:"M",s:2025,kolo:1,t:"p",v:"0:42,42"},
+  {n:"Dinko Srkoč",k:"M",s:2025,kolo:2,t:"d",v:"0:39,83"},
+  {n:"Dinko Srkoč",k:"M",s:2025,kolo:3,t:"sl",v:"0:34,14"},
+  {n:"Dinko Srkoč",k:"M",s:2025,kolo:4,t:"L",v:"3:24,61"},
+  {n:"Dinko Srkoč",k:"M",s:2025,kolo:5,t:"M",v:"3:10,85"},
+  {n:"Dinko Srkoč",k:"M",s:2025,kolo:6,t:"SL",v:"2:43,02"},
+  {n:"Dinko Srkoč",k:"M",s:2025,kolo:7,t:"l",v:"0:44,21"},
+  {n:"Dinko Srkoč",k:"M",s:2025,kolo:8,t:"D",v:"3:53,18"},
+  {n:"Dinko Srkoč",k:"M",s:2025,kolo:9,t:"P",v:"3:32,52"},
+  // 3. Marko Šujica – 9
+  {n:"Marko Šujica",k:"M",s:2025,kolo:1,t:"p",v:"0:49,74"},
+  {n:"Marko Šujica",k:"M",s:2025,kolo:2,t:"sl",v:"0:36,14"},
+  {n:"Marko Šujica",k:"M",s:2025,kolo:3,t:"l",v:"0:42,73"},
+  {n:"Marko Šujica",k:"M",s:2025,kolo:4,t:"d",v:"0:47,14"},
+  {n:"Marko Šujica",k:"M",s:2025,kolo:5,t:"SL",v:"3:15,30"},
+  {n:"Marko Šujica",k:"M",s:2025,kolo:6,t:"sl",v:"0:32,55"},
+  {n:"Marko Šujica",k:"M",s:2025,kolo:7,t:"sl",v:"0:32,39"},
+  {n:"Marko Šujica",k:"M",s:2025,kolo:8,t:"sl",v:"0:34,58"},
+  {n:"Marko Šujica",k:"M",s:2025,kolo:9,t:"sl",v:"0:33,49"},
+  // 4. Ivo Sabioncello – 9
+  {n:"Ivo Sabioncello",k:"M",s:2025,kolo:1,t:"sl",v:"0:33,02"},
+  {n:"Ivo Sabioncello",k:"M",s:2025,kolo:2,t:"sl",v:"0:34,02"},
+  {n:"Ivo Sabioncello",k:"M",s:2025,kolo:3,t:"sl",v:"0:32,64"},
+  {n:"Ivo Sabioncello",k:"M",s:2025,kolo:4,t:"sl",v:"0:31,64"},
+  {n:"Ivo Sabioncello",k:"M",s:2025,kolo:5,t:"sl",v:"0:33,40"},
+  {n:"Ivo Sabioncello",k:"M",s:2025,kolo:6,t:"sl",v:"0:33,21"},
+  {n:"Ivo Sabioncello",k:"M",s:2025,kolo:7,t:"sl",v:"0:31,55"},
+  {n:"Ivo Sabioncello",k:"M",s:2025,kolo:8,t:"sl",v:"0:32,18"},
+  {n:"Ivo Sabioncello",k:"M",s:2025,kolo:9,t:"sl",v:"0:32,11"},
+  // 5. Borko Prvan – 9
+  {n:"Borko Prvan",k:"M",s:2025,kolo:1,t:"SL",v:"2:57,11"},
+  {n:"Borko Prvan",k:"M",s:2025,kolo:2,t:"SL",v:"3:00,80"},
+  {n:"Borko Prvan",k:"M",s:2025,kolo:3,t:"SL",v:"2:58,30"},
+  {n:"Borko Prvan",k:"M",s:2025,kolo:4,t:"SL",v:"2:57,64"},
+  {n:"Borko Prvan",k:"M",s:2025,kolo:5,t:"SL",v:"3:00,19"},
+  {n:"Borko Prvan",k:"M",s:2025,kolo:6,t:"SL",v:"3:02,18"},
+  {n:"Borko Prvan",k:"M",s:2025,kolo:7,t:"SL",v:"2:59,36"},
+  {n:"Borko Prvan",k:"M",s:2025,kolo:8,t:"SL",v:"3:00,58"},
+  {n:"Borko Prvan",k:"M",s:2025,kolo:9,t:"SL",v:"2:59,70"},
+  // 6. Ivo Petković – 9
+  {n:"Ivo Petković",k:"M",s:2025,kolo:1,t:"sl",v:"1:00,62"},
+  {n:"Ivo Petković",k:"M",s:2025,kolo:2,t:"sl",v:"0:56,11"},
+  {n:"Ivo Petković",k:"M",s:2025,kolo:3,t:"sl",v:"0:57,86"},
+  {n:"Ivo Petković",k:"M",s:2025,kolo:4,t:"sl",v:"0:57,99"},
+  {n:"Ivo Petković",k:"M",s:2025,kolo:5,t:"sl",v:"0:53,46"},
+  {n:"Ivo Petković",k:"M",s:2025,kolo:6,t:"sl",v:"0:54,14"},
+  {n:"Ivo Petković",k:"M",s:2025,kolo:7,t:"sl",v:"0:57,43"},
+  {n:"Ivo Petković",k:"M",s:2025,kolo:8,t:"sl",v:"0:57,78"},
+  {n:"Ivo Petković",k:"M",s:2025,kolo:9,t:"sl",v:"0:59,03"},
+  // 7. Martin Balić – 8 (kolo 4 nije)
+  {n:"Martin Balić",k:"M",s:2025,kolo:1,t:"sl",v:"0:29,14"},
+  {n:"Martin Balić",k:"M",s:2025,kolo:2,t:"SL",v:"2:26,49"},
+  {n:"Martin Balić",k:"M",s:2025,kolo:3,t:"SL",v:"2:26,24"},
+  {n:"Martin Balić",k:"M",s:2025,kolo:5,t:"SL",v:"2:32,05"},
+  {n:"Martin Balić",k:"M",s:2025,kolo:6,t:"SL",v:"2:29,08"},
+  {n:"Martin Balić",k:"M",s:2025,kolo:7,t:"SL",v:"2:28,99"},
+  {n:"Martin Balić",k:"M",s:2025,kolo:8,t:"SL",v:"2:27,59"},
+  {n:"Martin Balić",k:"M",s:2025,kolo:9,t:"SL",v:"2:26,14"},
+  // 8. Vitomir Sever – 8
+  {n:"Vitomir Sever",k:"M",s:2025,kolo:1,t:"sl",v:"0:39,65"},
+  {n:"Vitomir Sever",k:"M",s:2025,kolo:2,t:"sl",v:"0:45,70"},
+  {n:"Vitomir Sever",k:"M",s:2025,kolo:3,t:"p",v:"0:47,27"},
+  {n:"Vitomir Sever",k:"M",s:2025,kolo:5,t:"sl",v:"0:40,52"},
+  {n:"Vitomir Sever",k:"M",s:2025,kolo:6,t:"p",v:"0:43,90"},
+  {n:"Vitomir Sever",k:"M",s:2025,kolo:7,t:"P",v:"3:56,39"},
+  {n:"Vitomir Sever",k:"M",s:2025,kolo:8,t:"p",v:"0:49,11"},
+  {n:"Vitomir Sever",k:"M",s:2025,kolo:9,t:"p",v:"0:48,25"},
+  // 9. Damir Dolinar – 7
+  {n:"Damir Dolinar",k:"M",s:2025,kolo:2,t:"sl",v:"0:38,18"},
+  {n:"Damir Dolinar",k:"M",s:2025,kolo:3,t:"sl",v:"0:38,67"},
+  {n:"Damir Dolinar",k:"M",s:2025,kolo:4,t:"sl",v:"0:37,89"},
+  {n:"Damir Dolinar",k:"M",s:2025,kolo:5,t:"sl",v:"0:39,58"},
+  {n:"Damir Dolinar",k:"M",s:2025,kolo:6,t:"sl",v:"0:40,27"},
+  {n:"Damir Dolinar",k:"M",s:2025,kolo:7,t:"sl",v:"0:36,58"},
+  {n:"Damir Dolinar",k:"M",s:2025,kolo:9,t:"sl",v:"0:38,92"},
+  // 10. Zdravko Kolarić – 7
+  {n:"Zdravko Kolarić",k:"M",s:2025,kolo:1,t:"sl",v:"1:20,36"},
+  {n:"Zdravko Kolarić",k:"M",s:2025,kolo:2,t:"sl",v:"1:11,11"},
+  {n:"Zdravko Kolarić",k:"M",s:2025,kolo:3,t:"sl",v:"1:19,02"},
+  {n:"Zdravko Kolarić",k:"M",s:2025,kolo:4,t:"sl",v:"1:18,90"},
+  {n:"Zdravko Kolarić",k:"M",s:2025,kolo:6,t:"sl",v:"1:12,43"},
+  {n:"Zdravko Kolarić",k:"M",s:2025,kolo:7,t:"sl",v:"1:13,95"},
+  {n:"Zdravko Kolarić",k:"M",s:2025,kolo:9,t:"sl",v:"1:17,83"},
+  // 11. Vjeran Malenica – 7
+  {n:"Vjeran Malenica",k:"M",s:2025,kolo:2,t:"SL",v:"3:02,14"},
+  {n:"Vjeran Malenica",k:"M",s:2025,kolo:3,t:"SL",v:"2:59,59"},
+  {n:"Vjeran Malenica",k:"M",s:2025,kolo:4,t:"SL",v:"3:08,21"},
+  {n:"Vjeran Malenica",k:"M",s:2025,kolo:6,t:"SL",v:"3:01,93"},
+  {n:"Vjeran Malenica",k:"M",s:2025,kolo:7,t:"SL",v:"3:06,45"},
+  {n:"Vjeran Malenica",k:"M",s:2025,kolo:8,t:"SL",v:"3:01,65"},
+  {n:"Vjeran Malenica",k:"M",s:2025,kolo:9,t:"SL",v:"3:06,58"},
+  // 12. Marko Maletić – 7
+  {n:"Marko Maletić",k:"M",s:2025,kolo:1,t:"sl",v:"0:26,55"},
+  {n:"Marko Maletić",k:"M",s:2025,kolo:3,t:"d",v:"0:28,24"},
+  {n:"Marko Maletić",k:"M",s:2025,kolo:5,t:"d",v:"0:30,78"},
+  {n:"Marko Maletić",k:"M",s:2025,kolo:6,t:"p",v:"0:33,74"},
+  {n:"Marko Maletić",k:"M",s:2025,kolo:7,t:"l",v:"0:31,83"},
+  {n:"Marko Maletić",k:"M",s:2025,kolo:8,t:"d",v:"0:28,78"},
+  {n:"Marko Maletić",k:"M",s:2025,kolo:9,t:"d",v:"0:28,51"},
+  // 13. Danko Dolinar – 6
+  {n:"Danko Dolinar",k:"M",s:2025,kolo:2,t:"sl",v:"0:40,36"},
+  {n:"Danko Dolinar",k:"M",s:2025,kolo:3,t:"sl",v:"0:38,36"},
+  {n:"Danko Dolinar",k:"M",s:2025,kolo:4,t:"sl",v:"0:37,42"},
+  {n:"Danko Dolinar",k:"M",s:2025,kolo:5,t:"sl",v:"0:38,33"},
+  {n:"Danko Dolinar",k:"M",s:2025,kolo:7,t:"sl",v:"0:40,30"},
+  {n:"Danko Dolinar",k:"M",s:2025,kolo:8,t:"sl",v:"0:38,02"},
+  // 14. Dražen Vassung – 6
+  {n:"Dražen Vassung",k:"M",s:2025,kolo:1,t:"sl",v:"0:34,46"},
+  {n:"Dražen Vassung",k:"M",s:2025,kolo:2,t:"d",v:"0:46,17"},
+  {n:"Dražen Vassung",k:"M",s:2025,kolo:3,t:"sl",v:"0:34,21"},
+  {n:"Dražen Vassung",k:"M",s:2025,kolo:5,t:"D",v:"3:59,30"},
+  {n:"Dražen Vassung",k:"M",s:2025,kolo:7,t:"l",v:"0:45,46"},
+  {n:"Dražen Vassung",k:"M",s:2025,kolo:8,t:"L",v:"3:36,33"},
+  // 15. Vedran Hudec – 6
+  {n:"Vedran Hudec",k:"M",s:2025,kolo:1,t:"sl",v:"0:32,49"},
+  {n:"Vedran Hudec",k:"M",s:2025,kolo:2,t:"p",v:"0:44,05"},
+  {n:"Vedran Hudec",k:"M",s:2025,kolo:3,t:"l",v:"0:39,59"},
+  {n:"Vedran Hudec",k:"M",s:2025,kolo:4,t:"d",v:"0:40,80"},
+  {n:"Vedran Hudec",k:"M",s:2025,kolo:5,t:"M",v:"3:06,24"},
+  {n:"Vedran Hudec",k:"M",s:2025,kolo:6,t:"L",v:"2:57,49"},
+  // 16. Hrvoje Carić – 6
+  {n:"Hrvoje Carić",k:"M",s:2025,kolo:1,t:"SL",v:"2:45,99"},
+  {n:"Hrvoje Carić",k:"M",s:2025,kolo:2,t:"SL",v:"2:40,11"},
+  {n:"Hrvoje Carić",k:"M",s:2025,kolo:3,t:"SL",v:"2:36,45"},
+  {n:"Hrvoje Carić",k:"M",s:2025,kolo:5,t:"sl",v:"0:38,21"},
+  {n:"Hrvoje Carić",k:"M",s:2025,kolo:6,t:"sl",v:"0:35,58"},
+  {n:"Hrvoje Carić",k:"M",s:2025,kolo:9,t:"sl",v:"0:32,83"},
+  // 17. Goran Hudec – 6
+  {n:"Goran Hudec",k:"M",s:2025,kolo:1,t:"d",v:"1:14,21"},
+  {n:"Goran Hudec",k:"M",s:2025,kolo:3,t:"M",v:"5:17,01"},
+  {n:"Goran Hudec",k:"M",s:2025,kolo:6,t:"d",v:"1:15,18"},
+  {n:"Goran Hudec",k:"M",s:2025,kolo:7,t:"d",v:"1:09,83"},
+  {n:"Goran Hudec",k:"M",s:2025,kolo:8,t:"d",v:"1:14,86"},
+  {n:"Goran Hudec",k:"M",s:2025,kolo:9,t:"d",v:"1:10,49"},
+  // 18. Goran Marović – 5
+  {n:"Goran Marović",k:"M",s:2025,kolo:1,t:"p",v:"0:44,02"},
+  {n:"Goran Marović",k:"M",s:2025,kolo:2,t:"P",v:"3:43,36"},
+  {n:"Goran Marović",k:"M",s:2025,kolo:3,t:"L",v:"3:46,14"},
+  {n:"Goran Marović",k:"M",s:2025,kolo:4,t:"l",v:"0:51,30"},
+  {n:"Goran Marović",k:"M",s:2025,kolo:5,t:"SL",v:"3:06,87"},
+  // 19. Luka Gabriš – 5
+  {n:"Luka Gabriš",k:"M",s:2025,kolo:2,t:"p",v:"0:34,84"},
+  {n:"Luka Gabriš",k:"M",s:2025,kolo:3,t:"M",v:"2:35,52"},
+  {n:"Luka Gabriš",k:"M",s:2025,kolo:4,t:"p",v:"0:33,99"},
+  {n:"Luka Gabriš",k:"M",s:2025,kolo:5,t:"p",v:"0:34,40"},
+  {n:"Luka Gabriš",k:"M",s:2025,kolo:9,t:"p",v:"0:34,43"},
+  // 20. Mladen Maršanić – 5
+  {n:"Mladen Maršanić",k:"M",s:2025,kolo:3,t:"sl",v:"0:52,36"},
+  {n:"Mladen Maršanić",k:"M",s:2025,kolo:5,t:"sl",v:"0:51,39"},
+  {n:"Mladen Maršanić",k:"M",s:2025,kolo:6,t:"sl",v:"0:50,70"},
+  {n:"Mladen Maršanić",k:"M",s:2025,kolo:7,t:"sl",v:"0:52,99"},
+  {n:"Mladen Maršanić",k:"M",s:2025,kolo:8,t:"sl",v:"0:51,65"},
+  // 21. Jasmin Dizdarević – 4
+  {n:"Jasmin Dizdarević",k:"M",s:2025,kolo:2,t:"sl",v:"0:36,67"},
+  {n:"Jasmin Dizdarević",k:"M",s:2025,kolo:3,t:"sl",v:"0:35,83"},
+  {n:"Jasmin Dizdarević",k:"M",s:2025,kolo:4,t:"sl",v:"0:36,64"},
+  {n:"Jasmin Dizdarević",k:"M",s:2025,kolo:7,t:"sl",v:"0:35,96"},
+  // 22. Predrag Šarec – 4
+  {n:"Predrag Šarec",k:"M",s:2025,kolo:2,t:"sl",v:"0:42,27"},
+  {n:"Predrag Šarec",k:"M",s:2025,kolo:4,t:"sl",v:"0:41,80"},
+  {n:"Predrag Šarec",k:"M",s:2025,kolo:5,t:"sl",v:"0:41,74"},
+  {n:"Predrag Šarec",k:"M",s:2025,kolo:8,t:"sl",v:"0:41,27"},
+  // 23. Ribafish – 4
+  {n:"Ribafish",k:"M",s:2025,kolo:2,t:"sl",v:"0:32,96"},
+  {n:"Ribafish",k:"M",s:2025,kolo:6,t:"sl",v:"0:32,37"},
+  {n:"Ribafish",k:"M",s:2025,kolo:7,t:"sl",v:"0:33,17"},
+  {n:"Ribafish",k:"M",s:2025,kolo:9,t:"sl",v:"0:33,11"},
+  // 24. Darko Kuzle – 3
+  {n:"Darko Kuzle",k:"M",s:2025,kolo:1,t:"sl",v:"1:01,21"},
+  {n:"Darko Kuzle",k:"M",s:2025,kolo:2,t:"sl",v:"0:58,68"},
+  {n:"Darko Kuzle",k:"M",s:2025,kolo:3,t:"sl",v:"0:55,47"},
+  // 25. Viktor Hecer – 3
+  {n:"Viktor Hecer",k:"M",s:2025,kolo:2,t:"sl",v:"0:55,84"},
+  {n:"Viktor Hecer",k:"M",s:2025,kolo:3,t:"l",v:"0:59,19"},
+  {n:"Viktor Hecer",k:"M",s:2025,kolo:4,t:"sl",v:"0:50,86"},
+  // 26. Darko Hecer – 3
+  {n:"Darko Hecer",k:"M",s:2025,kolo:2,t:"sl",v:"0:34,83"},
+  {n:"Darko Hecer",k:"M",s:2025,kolo:3,t:"M",v:"3:41,66"},
+  {n:"Darko Hecer",k:"M",s:2025,kolo:4,t:"sl",v:"0:34,37"},
+  // 27. Davor Gradiški – 3
+  {n:"Davor Gradiški",k:"M",s:2025,kolo:2,t:"sl",v:"0:35,77"},
+  {n:"Davor Gradiški",k:"M",s:2025,kolo:3,t:"sl",v:"0:36,14"},
+  {n:"Davor Gradiški",k:"M",s:2025,kolo:6,t:"sl",v:"0:35,71"},
+  // 28. Krešimir Štark – 3
+  {n:"Krešimir Štark",k:"M",s:2025,kolo:3,t:"SL",v:"3:01,77"},
+  {n:"Krešimir Štark",k:"M",s:2025,kolo:6,t:"SL",v:"3:12,49"},
+  {n:"Krešimir Štark",k:"M",s:2025,kolo:7,t:"p",v:"0:47,65"},
+  // 29. Rade Dubreta – 3
+  {n:"Rade Dubreta",k:"M",s:2025,kolo:5,t:"D",v:"3:02,67"},
+  {n:"Rade Dubreta",k:"M",s:2025,kolo:6,t:"M",v:"2:58,95"},
+  {n:"Rade Dubreta",k:"M",s:2025,kolo:8,t:"M",v:"2:51,08"},
+  // 30. Mario Kurtanjek – 3
+  {n:"Mario Kurtanjek",k:"M",s:2025,kolo:3,t:"sl",v:"0:32,02"},
+  {n:"Mario Kurtanjek",k:"M",s:2025,kolo:6,t:"sl",v:"0:34,34"},
+  {n:"Mario Kurtanjek",k:"M",s:2025,kolo:8,t:"d",v:"0:38,14"},
+  // 31. Petar Kurtanjek – 3
+  {n:"Petar Kurtanjek",k:"M",s:2025,kolo:3,t:"sl",v:"0:37,14"},
+  {n:"Petar Kurtanjek",k:"M",s:2025,kolo:6,t:"sl",v:"0:36,14"},
+  {n:"Petar Kurtanjek",k:"M",s:2025,kolo:8,t:"d",v:"0:44,73"},
+  // 32. Boris Igrec – 2
+  {n:"Boris Igrec",k:"M",s:2025,kolo:1,t:"sl",v:"0:32,96"},
+  {n:"Boris Igrec",k:"M",s:2025,kolo:2,t:"sl",v:"0:33,71"},
+  // 33. Nenad Brašnović – 2
+  {n:"Nenad Brašnović",k:"M",s:2025,kolo:1,t:"sl",v:"0:33,30"},
+  {n:"Nenad Brašnović",k:"M",s:2025,kolo:2,t:"sl",v:"0:33,43"},
+  // 34. Roman Baranja – 2
+  {n:"Roman Baranja",k:"M",s:2025,kolo:2,t:"sl",v:"0:43,45"},
+  {n:"Roman Baranja",k:"M",s:2025,kolo:5,t:"sl",v:"0:43,55"},
+  // 35. Goran Puškar – 2
+  {n:"Goran Puškar",k:"M",s:2025,kolo:1,t:"sl",v:"0:35,74"},
+  {n:"Goran Puškar",k:"M",s:2025,kolo:6,t:"sl",v:"0:36,39"},
+  // 36. Emanuele Salvati – 2
+  {n:"Emanuele Salvati",k:"M",s:2025,kolo:1,t:"sl",v:"0:27,37"},
+  {n:"Emanuele Salvati",k:"M",s:2025,kolo:6,t:"sl",v:"0:26,74"},
+  // 37. Mario Matić – 2
+  {n:"Mario Matić",k:"M",s:2025,kolo:3,t:"sl",v:"0:31,47"},
+  {n:"Mario Matić",k:"M",s:2025,kolo:6,t:"SL",v:"3:12,96"},
+  // 38. Ratko Rusak – 2
+  {n:"Ratko Rusak",k:"M",s:2025,kolo:1,t:"sl",v:"0:44,93"},
+  {n:"Ratko Rusak",k:"M",s:2025,kolo:7,t:"sl",v:"0:40,86"},
+  // 39. Tihomir Fabeta – 2
+  {n:"Tihomir Fabeta",k:"M",s:2025,kolo:2,t:"sl",v:"0:34,42"},
+  {n:"Tihomir Fabeta",k:"M",s:2025,kolo:7,t:"sl",v:"0:39,18"},
+  // 40. Goran Kuljiš – 2
+  {n:"Goran Kuljiš",k:"M",s:2025,kolo:5,t:"sl",v:"0:33,05"},
+  {n:"Goran Kuljiš",k:"M",s:2025,kolo:8,t:"sl",v:"0:31,65"},
+  // 41. Igor Boršić – 2
+  {n:"Igor Boršić",k:"M",s:2025,kolo:5,t:"sl",v:"0:33,37"},
+  {n:"Igor Boršić",k:"M",s:2025,kolo:8,t:"sl",v:"0:36,36"},
+  // 42. Danijel Švigir – 2
+  {n:"Danijel Švigir",k:"M",s:2025,kolo:6,t:"p",v:"0:44,77"},
+  {n:"Danijel Švigir",k:"M",s:2025,kolo:7,t:"p",v:"0:46,21"},
+  // 43. Ognjen Škunca – 2
+  {n:"Ognjen Škunca",k:"M",s:2025,kolo:2,t:"sl",v:"0:36,49"},
+  {n:"Ognjen Škunca",k:"M",s:2025,kolo:9,t:"sl",v:"0:34,30"},
+  // 44. Stjepan Žagar – 2
+  {n:"Stjepan Žagar",k:"M",s:2025,kolo:6,t:"sl",v:"0:43,30"},
+  {n:"Stjepan Žagar",k:"M",s:2025,kolo:9,t:"sl",v:"0:44,99"},
+  // 45. Tomislav Carić – 2
+  {n:"Tomislav Carić",k:"M",s:2025,kolo:7,t:"sl",v:"0:46,37"},
+  {n:"Tomislav Carić",k:"M",s:2025,kolo:8,t:"sl",v:"0:43,74"},
+  // single – M 2025
+  {n:"Marko Brković",k:"M",s:2025,kolo:1,t:"sl",v:"0:29,30"},
+  {n:"Hrvoje Ivičević",k:"M",s:2025,kolo:1,t:"sl",v:"0:36,20"},
+  {n:"Adrian Gabriš",k:"M",s:2025,kolo:1,t:"sl",v:"1:58,58"},
+  {n:"Filip Manojlovski",k:"M",s:2025,kolo:1,t:"sl",v:"0:30,11"},
+  {n:"Ivan Gabriš",k:"M",s:2025,kolo:1,t:"SL",v:"2:27,42"},
+  {n:"Ivica Pavlović",k:"M",s:2025,kolo:1,t:"sl",v:"0:33,10"},
+  {n:"Vedran Čoti",k:"M",s:2025,kolo:1,t:"p",v:"0:44,92"},
+  {n:"Sanjin Rotar",k:"M",s:2025,kolo:1,t:"sl",v:"0:42,99"},
+  {n:"Zdenko Pećnik",k:"M",s:2025,kolo:1,t:"sl",v:"0:47,08"},
+  {n:"Bruno Škacan",k:"M",s:2025,kolo:1,t:"sl",v:"0:44,02"},
+  {n:"Ante Orlović",k:"M",s:2025,kolo:2,t:"sl",v:"0:27,14"},
+  {n:"Igor Cvek",k:"M",s:2025,kolo:2,t:"sl",v:"0:38,65"},
+  {n:"Marko Nardelli",k:"M",s:2025,kolo:2,t:"d",v:"0:47,21"},
+  {n:"Goran Jakovac",k:"M",s:2025,kolo:2,t:"SL",v:"2:57,61"},
+  {n:"Uglješa Mostarac",k:"M",s:2025,kolo:3,t:"p",v:"0:42,20"},
+  {n:"Matko Josipović",k:"M",s:2025,kolo:3,t:"D",v:"4:43,92"},
+  {n:"Noa Mostarac",k:"M",s:2025,kolo:3,t:"p",v:"0:48,21"},
+  {n:"Ranko Defrančeski",k:"M",s:2025,kolo:4,t:"SL",v:"3:26,74"},
+  {n:"Domagoj Lipošinović",k:"M",s:2025,kolo:5,t:"sl",v:"0:35,77"},
+  {n:"Ivan Šoštarić",k:"M",s:2025,kolo:6,t:"d",v:"0:28,64"},
+  {n:"Zenon Pavić",k:"M",s:2025,kolo:6,t:"SL",v:"2:45,21"},
+  {n:"Davor Kukolja",k:"M",s:2025,kolo:6,t:"sl",v:"0:39,83"},
+  {n:"Luka Malenica",k:"M",s:2025,kolo:7,t:"p",v:"1:06,36"},
+  {n:"Josip Malenica",k:"M",s:2025,kolo:7,t:"sl",v:"0:45,18"},
+  {n:"Lari Host",k:"M",s:2025,kolo:7,t:"sl",v:"0:37,52"},
+  {n:"Sian Leon Thias",k:"M",s:2025,kolo:7,t:"sl",v:"0:30,27"},
+  {n:"Dario Milić",k:"M",s:2025,kolo:8,t:"SL",v:"3:23,34"},
+  {n:"Marko Duvnjak",k:"M",s:2025,kolo:9,t:"sl",v:"1:07,93"},
+  // ── 2025 – ŽENE (str. 5-6, red. br. 1-36) ────────────────
+  // 1. Vedrana Deren – 9
+  {n:"Vedrana Deren",k:"Ž",s:2025,kolo:1,t:"sl",v:"0:35,11"},
+  {n:"Vedrana Deren",k:"Ž",s:2025,kolo:2,t:"SL",v:"2:49,45"},
+  {n:"Vedrana Deren",k:"Ž",s:2025,kolo:3,t:"L",v:"3:08,75"},
+  {n:"Vedrana Deren",k:"Ž",s:2025,kolo:4,t:"p",v:"0:44,52"},
+  {n:"Vedrana Deren",k:"Ž",s:2025,kolo:5,t:"P",v:"3:20,39"},
+  {n:"Vedrana Deren",k:"Ž",s:2025,kolo:6,t:"d",v:"0:39,02"},
+  {n:"Vedrana Deren",k:"Ž",s:2025,kolo:7,t:"M",v:"3:07,52"},
+  {n:"Vedrana Deren",k:"Ž",s:2025,kolo:8,t:"D",v:"3:44,92"},
+  {n:"Vedrana Deren",k:"Ž",s:2025,kolo:9,t:"l",v:"0:40,61"},
+  // 2. Zrinka Srkoč – 8
+  {n:"Zrinka Srkoč",k:"Ž",s:2025,kolo:1,t:"sl",v:"0:42,08"},
+  {n:"Zrinka Srkoč",k:"Ž",s:2025,kolo:2,t:"p",v:"0:50,65"},
+  {n:"Zrinka Srkoč",k:"Ž",s:2025,kolo:3,t:"p",v:"0:53,02"},
+  {n:"Zrinka Srkoč",k:"Ž",s:2025,kolo:5,t:"sl",v:"0:42,99"},
+  {n:"Zrinka Srkoč",k:"Ž",s:2025,kolo:6,t:"p",v:"0:50,86"},
+  {n:"Zrinka Srkoč",k:"Ž",s:2025,kolo:7,t:"p",v:"0:52,08"},
+  {n:"Zrinka Srkoč",k:"Ž",s:2025,kolo:8,t:"sl",v:"0:40,58"},
+  {n:"Zrinka Srkoč",k:"Ž",s:2025,kolo:9,t:"l",v:"0:48,34"},
+  // 3. Rita Sever – 7
+  {n:"Rita Sever",k:"Ž",s:2025,kolo:1,t:"sl",v:"0:42,11"},
+  {n:"Rita Sever",k:"Ž",s:2025,kolo:2,t:"d",v:"0:53,61"},
+  {n:"Rita Sever",k:"Ž",s:2025,kolo:3,t:"d",v:"0:51,99"},
+  {n:"Rita Sever",k:"Ž",s:2025,kolo:4,t:"p",v:"0:54,24"},
+  {n:"Rita Sever",k:"Ž",s:2025,kolo:5,t:"p",v:"0:55,64"},
+  {n:"Rita Sever",k:"Ž",s:2025,kolo:6,t:"p",v:"0:54,68"},
+  {n:"Rita Sever",k:"Ž",s:2025,kolo:7,t:"p",v:"0:51,95"},
+  // 4. Maja Strižić Jakovljević – 6
+  {n:"Maja Strižić Jakovljević",k:"Ž",s:2025,kolo:1,t:"d",v:"0:39,33"},
+  {n:"Maja Strižić Jakovljević",k:"Ž",s:2025,kolo:2,t:"sl",v:"0:36,18"},
+  {n:"Maja Strižić Jakovljević",k:"Ž",s:2025,kolo:3,t:"l",v:"0:42,11"},
+  {n:"Maja Strižić Jakovljević",k:"Ž",s:2025,kolo:4,t:"p",v:"0:46,08"},
+  {n:"Maja Strižić Jakovljević",k:"Ž",s:2025,kolo:6,t:"sl",v:"0:33,37"},
+  {n:"Maja Strižić Jakovljević",k:"Ž",s:2025,kolo:7,t:"p",v:"0:48,17"},
+  // 5. Manuela Zadravec – 6
+  {n:"Manuela Zadravec",k:"Ž",s:2025,kolo:1,t:"sl",v:"0:44,89"},
+  {n:"Manuela Zadravec",k:"Ž",s:2025,kolo:3,t:"p",v:"0:52,61"},
+  {n:"Manuela Zadravec",k:"Ž",s:2025,kolo:4,t:"P",v:"4:21,81"},
+  {n:"Manuela Zadravec",k:"Ž",s:2025,kolo:5,t:"p",v:"0:53,18"},
+  {n:"Manuela Zadravec",k:"Ž",s:2025,kolo:7,t:"P",v:"4:12,40"},
+  {n:"Manuela Zadravec",k:"Ž",s:2025,kolo:9,t:"P",v:"4:05,70"},
+  // 6. Viktorija Ivić – 5
+  {n:"Viktorija Ivić",k:"Ž",s:2025,kolo:1,t:"d",v:"0:37,21"},
+  {n:"Viktorija Ivić",k:"Ž",s:2025,kolo:3,t:"l",v:"0:39,36"},
+  {n:"Viktorija Ivić",k:"Ž",s:2025,kolo:4,t:"p",v:"0:44,27"},
+  {n:"Viktorija Ivić",k:"Ž",s:2025,kolo:5,t:"sl",v:"0:34,43"},
+  {n:"Viktorija Ivić",k:"Ž",s:2025,kolo:6,t:"sl",v:"0:33,52"},
+  // 7. Petra Počanić – 5
+  {n:"Petra Počanić",k:"Ž",s:2025,kolo:2,t:"p",v:"0:49,33"},
+  {n:"Petra Počanić",k:"Ž",s:2025,kolo:3,t:"p",v:"0:47,37"},
+  {n:"Petra Počanić",k:"Ž",s:2025,kolo:4,t:"P",v:"4:06,05"},
+  {n:"Petra Počanić",k:"Ž",s:2025,kolo:6,t:"p",v:"0:46,49"},
+  {n:"Petra Počanić",k:"Ž",s:2025,kolo:7,t:"sl",v:"0:39,64"},
+  // 8. Mirella Topličanec – 4
+  {n:"Mirella Topličanec",k:"Ž",s:2025,kolo:1,t:"sl",v:"0:50,95"},
+  {n:"Mirella Topličanec",k:"Ž",s:2025,kolo:3,t:"p",v:"0:59,66"},
+  {n:"Mirella Topličanec",k:"Ž",s:2025,kolo:5,t:"sl",v:"0:50,33"},
+  {n:"Mirella Topličanec",k:"Ž",s:2025,kolo:6,t:"p",v:"0:59,81"},
+  // 9. Vesna Jakšić – 4
+  {n:"Vesna Jakšić",k:"Ž",s:2025,kolo:3,t:"p",v:"1:03,90"},
+  {n:"Vesna Jakšić",k:"Ž",s:2025,kolo:4,t:"P",v:"5:05,64"},
+  {n:"Vesna Jakšić",k:"Ž",s:2025,kolo:5,t:"p",v:"1:06,08"},
+  {n:"Vesna Jakšić",k:"Ž",s:2025,kolo:7,t:"sl",v:"0:52,65"},
+  // 10. Ana Dolinar – 4
+  {n:"Ana Dolinar",k:"Ž",s:2025,kolo:2,t:"sl",v:"0:56,37"},
+  {n:"Ana Dolinar",k:"Ž",s:2025,kolo:4,t:"sl",v:"0:55,55"},
+  {n:"Ana Dolinar",k:"Ž",s:2025,kolo:6,t:"sl",v:"0:55,99"},
+  {n:"Ana Dolinar",k:"Ž",s:2025,kolo:8,t:"sl",v:"0:51,24"},
+  // 11. Eva Ivić – 3
+  {n:"Eva Ivić",k:"Ž",s:2025,kolo:1,t:"p",v:"0:56,62"},
+  {n:"Eva Ivić",k:"Ž",s:2025,kolo:4,t:"p",v:"0:55,78"},
+  {n:"Eva Ivić",k:"Ž",s:2025,kolo:5,t:"sl",v:"0:54,39"},
+  // 12. Ena Maletić – 3
+  {n:"Ena Maletić",k:"Ž",s:2025,kolo:5,t:"l",v:"1:18,87"},
+  {n:"Ena Maletić",k:"Ž",s:2025,kolo:7,t:"l",v:"1:14,92"},
+  {n:"Ena Maletić",k:"Ž",s:2025,kolo:8,t:"l",v:"1:12,78"},
+  // 13. Nika Amančić – 2
+  {n:"Nika Amančić",k:"Ž",s:2025,kolo:1,t:"sl",v:"0:49,14"},
+  {n:"Nika Amančić",k:"Ž",s:2025,kolo:2,t:"sl",v:"0:51,27"},
+  // 14. Stela Periš – 2
+  {n:"Stela Periš",k:"Ž",s:2025,kolo:1,t:"sl",v:"0:49,55"},
+  {n:"Stela Periš",k:"Ž",s:2025,kolo:3,t:"sl",v:"0:48,36"},
+  // 15. Ivana Matan – 2
+  {n:"Ivana Matan",k:"Ž",s:2025,kolo:3,t:"SL",v:"4:45,46"},
+  {n:"Ivana Matan",k:"Ž",s:2025,kolo:6,t:"SL",v:"4:49,43"},
+  // 16. Lucija Hađina – 2
+  {n:"Lucija Hađina",k:"Ž",s:2025,kolo:3,t:"SL",v:"2:36,42"},
+  {n:"Lucija Hađina",k:"Ž",s:2025,kolo:7,t:"M",v:"3:02,21"},
+  // 17. Melita Bogatec Milivojević – 2
+  {n:"Melita Bogatec Milivojević",k:"Ž",s:2025,kolo:4,t:"p",v:"2:25,41"},
+  {n:"Melita Bogatec Milivojević",k:"Ž",s:2025,kolo:8,t:"p",v:"2:29,30"},
+  // 18. Martina Ćosić – 2
+  {n:"Martina Ćosić",k:"Ž",s:2025,kolo:6,t:"sl",v:"0:48,30"},
+  {n:"Martina Ćosić",k:"Ž",s:2025,kolo:9,t:"sl",v:"0:45,83"},
+  // single – Ž 2025
+  {n:"Lana Borović",k:"Ž",s:2025,kolo:1,t:"sl",v:"0:32,99"},
+  {n:"Marina Platnjak",k:"Ž",s:2025,kolo:1,t:"p",v:"0:48,24"},
+  {n:"Petra Podnarčuk",k:"Ž",s:2025,kolo:1,t:"sl",v:"0:38,96"},
+  {n:"Viktorija Kovačević",k:"Ž",s:2025,kolo:1,t:"l",v:"0:54,58"},
+  {n:"Vesna Hrdlička Bergelj",k:"Ž",s:2025,kolo:2,t:"sl",v:"0:33,99"},
+  {n:"Maja Milat",k:"Ž",s:2025,kolo:3,t:"sl",v:"0:37,38"},
+  {n:"Špela Novak",k:"Ž",s:2025,kolo:3,t:"d",v:"0:45,67"},
+  {n:"Ana Kereša",k:"Ž",s:2025,kolo:3,t:"p",v:"0:47,09"},
+  {n:"Jodie Ringrose",k:"Ž",s:2025,kolo:5,t:"sl",v:"0:39,05"},
+  {n:"Nensi Pekić Matleković",k:"Ž",s:2025,kolo:5,t:"sl",v:"0:55,27"},
+  {n:"Danijela Šljivarić",k:"Ž",s:2025,kolo:5,t:"sl",v:"0:48,43"},
+  {n:"Lucija Švigir",k:"Ž",s:2025,kolo:7,t:"sl",v:"0:39,18"},
+  {n:"Jurka Jeran",k:"Ž",s:2025,kolo:8,t:"sl",v:"0:33,70"},
+  {n:"Višnja Petković",k:"Ž",s:2025,kolo:9,t:"p",v:"0:58,55"},
+  {n:"Olivera Junaković",k:"Ž",s:2025,kolo:9,t:"sl",v:"0:59,03"},
+  {n:"Lea Sever",k:"Ž",s:2025,kolo:9,t:"p",v:"1:32,24"},
+  {n:"Alessandra Della Savia",k:"Ž",s:2025,kolo:6,t:"sl",v:"1:21,92"},
+  // ── 2025 – mAq3 ──────────────────────────────────────────
+  {n:"Borko Prvan",k:"M",s:2025,kolo:1,t:"mAq3",v:"3:54,84"},
+  {n:"Borko Prvan",k:"M",s:2025,kolo:2,t:"mAq3",v:"4:06,21"},
+  {n:"Borko Prvan",k:"M",s:2025,kolo:3,t:"mAq3",v:"4:13,58"},
+  {n:"Borko Prvan",k:"M",s:2025,kolo:4,t:"mAq3",v:"4:05,49"},
+  {n:"Borko Prvan",k:"M",s:2025,kolo:5,t:"mAq3",v:"3:59,36"},
+  {n:"Borko Prvan",k:"M",s:2025,kolo:6,t:"mAq3",v:"4:30,61"},
+  {n:"Borko Prvan",k:"M",s:2025,kolo:7,t:"mAq3",v:"4:12,37"},
+  {n:"Borko Prvan",k:"M",s:2025,kolo:8,t:"mAq3",v:"4:07,42"},
+  {n:"Borko Prvan",k:"M",s:2025,kolo:9,t:"mAq3",v:"4:10,88"},
+  {n:"Jasmin Dizdarević",k:"M",s:2025,kolo:2,t:"mAq3",v:"4:07,67"},
+  {n:"Jasmin Dizdarević",k:"M",s:2025,kolo:3,t:"mAq3",v:"4:10,67"},
+  {n:"Jasmin Dizdarević",k:"M",s:2025,kolo:4,t:"mAq3",v:"4:19,73"},
+  {n:"Vedrana Deren",k:"Ž",s:2025,kolo:1,t:"mAq3",v:"4:33,52"},
+  {n:"Matko Josipović",k:"M",s:2025,kolo:3,t:"mAq3",v:"4:33,95"},
+  {n:"Špela Novak",k:"Ž",s:2025,kolo:3,t:"mAq3",v:"4:10,56"},
+  {n:"Rita Sever",k:"Ž",s:2025,kolo:7,t:"mAq3",v:"5:02,08"},
+];
+
+// Build DB with computed fields
+let DB = DB_RAW.map(r => ({
+  name: r.n,
+  ktg: r.k,
+  gender: r.k[0],
+  season: r.s,
+  kolo: r.kolo,
+  tech: r.t,
+  dist: techDist(r.t),
+  time: r.v,
+  time_s: parseTime(r.v)
+}));
+
+// ─── State ───────────────────────────────────────────────
+let sortKey = 'name', sortDir = 1;
+
+// ─── Populate ktg dropdown ───────────────────────────────
+function initKtgFilter() {
+  const ktgs = [...new Set(DB.map(r => r.ktg))].sort();
+  const sel = document.getElementById('f-ktg');
+  ktgs.forEach(k => {
+    const o = document.createElement('option');
+    o.value = k; o.textContent = k;
+    sel.appendChild(o);
+  });
+}
+
+// ─── Header stats ────────────────────────────────────────
+function updateHeaderStats() {
+  document.getElementById('hdr-athletes').textContent = new Set(DB.map(r=>r.name)).size;
+  document.getElementById('hdr-results').textContent = DB.length;
+  document.getElementById('hdr-seasons').textContent = new Set(DB.map(r=>r.season)).size;
+}
+
+// ─── Filter ──────────────────────────────────────────────
+function getFiltered() {
+  const name = document.getElementById('f-name').value.toLowerCase();
+  const season = document.getElementById('f-season').value;
+  const gender = document.getElementById('f-gender').value;
+  const ktg = document.getElementById('f-ktg').value;
+  const tech = document.getElementById('f-tech').value;
+  const min = parseInt(document.getElementById('f-min').value)||0;
+
+  let data = DB.filter(r => {
+    if (name && !r.name.toLowerCase().includes(name)) return false;
+    if (season && String(r.season) !== season) return false;
+    if (gender && r.gender !== gender) return false;
+    if (ktg && r.ktg !== ktg) return false;
+    if (tech && r.tech !== tech) return false;
+    return true;
+  });
+
+  if (min > 0) {
+    const counts = {};
+    data.forEach(r => counts[r.name+r.season] = (counts[r.name+r.season]||0)+1);
+    data = data.filter(r => counts[r.name+r.season] >= min);
+  }
+
+  return data.sort((a,b) => {
+    let va = a[sortKey], vb = b[sortKey];
+    if (typeof va === 'string') va = va.toLowerCase();
+    if (typeof vb === 'string') vb = vb.toLowerCase();
+    return va < vb ? -sortDir : va > vb ? sortDir : 0;
+  });
+}
+
+// ─── Tech badge ──────────────────────────────────────────
+function techBadge(t) {
+  const map = {sl:'sl',p:'p',l:'l',d:'d',SL:'SL',P:'P',L:'L',D:'D',M:'M',a3:'a3',mAq3:'mAq3'};
+  const cls = {sl:'sl',p:'p',l:'l',d:'d',SL:'sl',P:'p',L:'l',D:'d',M:'m',a3:'a3',mAq3:'a3'};
+  return `<span class="badge badge-${cls[t]||'sl'}">${map[t]||t}</span>`;
+}
+
+// ─── Render table ────────────────────────────────────────
+function renderTable() {
+  const data = getFiltered();
+  document.getElementById('count').textContent = data.length;
+  const tbody = document.getElementById('tbody');
+  if (data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="empty"><span>🏊</span>Nema rezultata za zadane filtre</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map(r => `
+    <tr>
+      <td class="name">${r.name}</td>
+      <td><span class="ktg-badge">${r.ktg}</span></td>
+      <td class="year-badge">${r.season}</td>
+      <td style="color:var(--muted);font-family:'DM Mono',monospace;font-size:12px">${r.kolo}</td>
+      <td>${techBadge(r.tech)}</td>
+      <td style="color:var(--muted);font-size:12px">${r.dist}</td>
+      <td class="time">${r.time}</td>
+    </tr>
+  `).join('');
+}
+
+// ─── Render athletes ─────────────────────────────────────
+function renderAthletes() {
+  const data = getFiltered();
+  const grouped = {};
+  data.forEach(r => {
+    const key = r.name + '|' + r.ktg;
+    if (!grouped[key]) grouped[key] = {name:r.name, ktg:r.ktg, gender:r.gender, results:[]};
+    grouped[key].results.push(r);
+  });
+  const list = document.getElementById('athlete-list');
+  const sorted = Object.values(grouped).sort((a,b) => a.name.localeCompare(b.name));
+  if (sorted.length === 0) {
+    list.innerHTML = '<div class="empty"><span>🏊</span>Nema natjecatelja za zadane filtre</div>';
+    return;
+  }
+  list.innerHTML = sorted.map(a => {
+    const seasons = [...new Set(a.results.map(r=>r.season))].sort();
+    const best = {};
+    a.results.forEach(r => {
+      if (!best[r.tech] || r.time_s < best[r.tech].time_s) best[r.tech] = r;
+    });
+    return `
+    <div class="athlete-card">
+      <div class="athlete-header">
+        <span class="athlete-name">${a.name}</span>
+        <span class="ktg-badge">${a.ktg}</span>
+        <span style="color:var(--muted);font-size:12px;margin-left:4px">· ${a.results.length} nastupa · ${seasons.join(', ')}</span>
+      </div>
+      <div style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:10px;letter-spacing:1px">OSOBNI REKORDI PO TEHNICI</div>
+      <div class="athlete-results">
+        ${Object.values(best).map(r => `
+          <div class="result-chip">
+            ${techBadge(r.tech)}
+            <span class="time">${r.time}</span>
+            <span style="color:var(--muted);font-size:11px">${r.season}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── Sort ────────────────────────────────────────────────
+function sortBy(key) {
+  if (sortKey === key) sortDir *= -1;
+  else { sortKey = key; sortDir = 1; }
+  document.querySelectorAll('th').forEach(th => th.classList.remove('sorted'));
+  event.target.classList.add('sorted');
+  renderTable();
+}
+
+// ─── Tab switch ──────────────────────────────────────────
+function switchTab(tab, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-results').style.display = tab==='results' ? '' : 'none';
+  document.getElementById('tab-athletes').style.display = tab==='athletes' ? '' : 'none';
+  document.getElementById('tab-add').style.display = tab==='add' ? '' : 'none';
+  if (tab === 'athletes') renderAthletes();
+}
+
+// ─── Reset ───────────────────────────────────────────────
+function resetFilters() {
+  ['f-name','f-season','f-gender','f-ktg','f-tech','f-min'].forEach(id => {
+    const el = document.getElementById(id);
+    el.value = el.tagName === 'SELECT' ? '' : '';
+  });
+  document.getElementById('f-min').value = '0';
+  renderTable();
+}
+
+// ─── Add result ──────────────────────────────────────────
+function addResult() {
+  const name = document.getElementById('a-name').value.trim();
+  const ktg = document.getElementById('a-ktg').value.trim();
+  const season = parseInt(document.getElementById('a-season').value);
+  const kolo = parseInt(document.getElementById('a-kolo').value);
+  const tech = document.getElementById('a-tech').value;
+  const time = document.getElementById('a-time').value.trim();
+  const ok = document.getElementById('msg-ok');
+  const err = document.getElementById('msg-err');
+  ok.style.display = 'none'; err.style.display = 'none';
+  if (!name||!ktg||!season||!kolo||!tech||!time) { err.style.display='block'; return; }
+  DB.push({ name, ktg, gender: ktg[0], season, kolo, tech, dist: techDist(tech), time, time_s: parseTime(time) });
+  // reset form
+  ['a-name','a-ktg','a-season','a-kolo','a-time'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('a-tech').value = '';
+  ok.style.display = 'block';
+  updateHeaderStats();
+  // refresh ktg dropdown
+  const sel = document.getElementById('f-ktg');
+  const existing = [...sel.options].map(o=>o.value);
+  if (!existing.includes(ktg)) {
+    const o = document.createElement('option');
+    o.value = ktg; o.textContent = ktg; sel.appendChild(o);
+  }
+}
+
+// ─── Event listeners ─────────────────────────────────────
+['f-name','f-season','f-gender','f-ktg','f-tech','f-min'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => {
+    renderTable();
+    if (document.getElementById('tab-athletes').style.display !== 'none') renderAthletes();
+  });
+  document.getElementById(id).addEventListener('change', () => {
+    renderTable();
+    if (document.getElementById('tab-athletes').style.display !== 'none') renderAthletes();
+  });
+});
+
+// ─── Init ────────────────────────────────────────────────
+initKtgFilter();
+updateHeaderStats();
+renderTable();
+</script>
+</body>
+</html>
