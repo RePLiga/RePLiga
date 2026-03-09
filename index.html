@@ -329,7 +329,38 @@
     header { padding: 0 16px; }
     main { padding: 20px 12px; }
     .header-stats { display: none; }
+    .hero { height: clamp(160px, 48vw, 240px) !important; padding-bottom: 28px !important; }
+    .hero-wave { height: 36px !important; }
   }
+
+  /* PASSWORD GATE */
+  .pw-gate {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 48px 24px;
+    text-align: center;
+  }
+  .pw-gate .pw-icon { font-size: 40px; margin-bottom: 4px; }
+  .pw-gate h3 { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; color: var(--white); }
+  .pw-gate p { color: var(--muted); font-size: 13px; }
+  .pw-row { display: flex; gap: 10px; align-items: center; }
+  .pw-row input {
+    background: var(--mid);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--white);
+    padding: 10px 16px;
+    font-size: 15px;
+    letter-spacing: 2px;
+    width: 200px;
+    outline: none;
+  }
+  .pw-row input:focus { border-color: var(--cyan); }
+  .pw-err { color: #ff6b6b; font-size: 13px; display: none; }
+  .pw-err.show { display: block; }
 
   /* HERO */
   .hero {
@@ -433,7 +464,7 @@
   <div class="filters">
     <div class="filter-group" style="grid-column: span 2">
       <label>🔍 Pretraži ime</label>
-      <input type="text" id="f-name" placeholder="npr. Speedy McSwim…">
+      <input type="text" id="f-name" placeholder="npr. Borko Prvan…">
     </div>
     <div class="filter-group">
       <label>Sezona</label>
@@ -525,6 +556,19 @@
 
   <!-- ADD TAB -->
   <div id="tab-add" style="display:none">
+    <!-- PASSWORD GATE -->
+    <div id="pw-gate" class="add-section pw-gate">
+      <div class="pw-icon">🔒</div>
+      <h3>Zaštićeno područje</h3>
+      <p>Unos rezultata dostupan je samo ovlaštenim osobama.<br>Unesite lozinku za pristup.</p>
+      <div class="pw-row">
+        <input type="password" id="pw-input" placeholder="lozinka…" onkeydown="if(event.key==='Enter')checkPw()">
+        <button class="btn-add" onclick="checkPw()">Potvrdi</button>
+      </div>
+      <div class="pw-err" id="pw-err">⚠ Pogrešna lozinka. Pokušajte ponovo.</div>
+    </div>
+    <!-- ACTUAL FORM (hidden until unlocked) -->
+    <div id="add-form-wrap" style="display:none">
     <div class="add-section">
       <h3>📋 Dodaj novi rezultat</h3>
       <div class="add-grid">
@@ -577,6 +621,7 @@
         Datoteka se može hostati potpuno besplatno na: <strong style="color:var(--white)">GitHub Pages</strong>, <strong style="color:var(--white)">Netlify Drop</strong> ili <strong style="color:var(--white)">Cloudflare Pages</strong> — samo upload jedne HTML datoteke.
       </p>
     </div>
+    </div><!-- /add-form-wrap -->
   </div>
 </main>
 
@@ -592,6 +637,26 @@ function parseTime(t) {
   const m = t.match(/(\d+)[:\.](\d+)[,\.](\d+)/);
   if (m) return parseInt(m[1])*60 + parseInt(m[2]) + parseInt(m[3])/100;
   return 99999;
+}
+
+// ─── Password gate ────────────────────────────
+const PW_HASH = '124b75a58cd00a5009efc304852b11974077a7cf2d9cc904d63bccb60f3008e9';
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function checkPw() {
+  const val = document.getElementById('pw-input').value;
+  const hash = await sha256(val);
+  if (hash === PW_HASH) {
+    document.getElementById('pw-gate').style.display = 'none';
+    document.getElementById('add-form-wrap').style.display = '';
+  } else {
+    const err = document.getElementById('pw-err');
+    err.classList.add('show');
+    document.getElementById('pw-input').value = '';
+    setTimeout(() => err.classList.remove('show'), 3000);
+  }
 }
 function techDist(t) {
   if (['SL','P','L','D','M'].includes(t)) return '200m';
